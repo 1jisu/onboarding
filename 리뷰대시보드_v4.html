@@ -422,16 +422,15 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
     <div class="brand-icon">R</div>
     <span class="brand-name">월간 리뷰</span>
     <div class="brand-divider"></div>
-    <span class="brand-sub">26.07.07ver. </span>
+    <span class="brand-sub">26.07 ver.</span>
   </div>
   <div class="header-right">
-    <span class="item-count-badge" id="total-badge">0건</span>
   </div>
 </header>
 
 <!-- TAB BAR -->
 <nav class="tab-bar">
-  <button class="tab-btn active" data-tab="write" onclick="switchTab('write',this)">
+  <button class="tab-btn active" data-tab="write" onclick="checkWriteAuth(this)">
     <span class="tab-icon">✏️</span> 리뷰 작성
   </button>
   <button class="tab-btn" data-tab="monthly" onclick="switchTab('monthly',this)">
@@ -444,6 +443,24 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
     <span class="tab-icon">🔍</span> 리뷰 검색
   </button>
 </nav>
+
+<!-- 비밀번호 모달 -->
+<div id="pw-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:999;display:none;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:32px 28px;width:340px;box-shadow:0 8px 40px rgba(0,0,0,0.15)">
+    <div style="font-size:18px;font-weight:700;margin-bottom:6px">🔒 리뷰 작성</div>
+    <div style="font-size:13px;color:#6b6a62;margin-bottom:20px">권한이 있는 분만 작성할 수 있어요</div>
+    <input type="password" id="pw-input" placeholder="비밀번호 입력"
+      style="width:100%;font-family:inherit;font-size:14px;padding:10px 14px;border:1px solid #e2e1d8;border-radius:8px;outline:none;margin-bottom:10px"
+      onkeydown="if(event.key==='Enter')submitPw()" />
+    <div id="pw-error" style="font-size:12px;color:#c0392b;margin-bottom:10px;display:none">비밀번호가 틀렸어요</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closePwModal()"
+        style="flex:1;font-family:inherit;font-size:13px;padding:9px;border-radius:8px;border:1px solid #e2e1d8;background:#fff;cursor:pointer">취소</button>
+      <button onclick="submitPw()"
+        style="flex:1;font-family:inherit;font-size:13px;font-weight:700;padding:9px;border-radius:8px;border:none;background:#1a1916;color:#fff;cursor:pointer">확인</button>
+    </div>
+  </div>
+</div>
 
 <!-- ════════════════════════ TAB 1: 리뷰 작성 ════════════════════════ -->
 <section class="page active" id="tab-write">
@@ -468,6 +485,26 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
           <option value="09">9월</option><option value="10">10월</option>
           <option value="11">11월</option><option value="12">12월</option>
         </select>
+      </div>
+      <div class="form-row full">
+        <label class="form-label">구분 <span style="color:var(--red)">*</span></label>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;padding:6px 0">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--ink)">
+            <input type="radio" name="w-group" value="제안사항" checked
+              style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer">
+            월간리뷰 제안사항
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--ink)">
+            <input type="radio" name="w-group" value="와이즈버즈"
+              style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer">
+            와이즈버즈 확인 필요
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--ink)">
+            <input type="radio" name="w-group" value="아모레몰"
+              style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer">
+            아모레몰 확인 필요
+          </label>
+        </div>
       </div>
       <div class="form-row full">
         <label class="form-label">회의록 내용 <span style="color:var(--red)">*</span></label>
@@ -548,6 +585,16 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
     <button class="rf-btn"    data-s="done"     onclick="setReflectFilter('done',this)">완료</button>
     <button class="rf-btn"    data-s="pending"  onclick="setReflectFilter('pending',this)">미진행</button>
   </div>
+  <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+    <button class="rg-btn" data-g="all" onclick="setReflectGroup('all',this)"
+      style="font-size:12px;font-family:inherit;font-weight:700;padding:5px 14px;border-radius:20px;border:1px solid #1a1916;background:#1a1916;color:#fff;cursor:pointer">전체</button>
+    <button class="rg-btn" data-g="제안사항" onclick="setReflectGroup('제안사항',this)"
+      style="font-size:12px;font-family:inherit;font-weight:500;padding:5px 14px;border-radius:20px;border:1px solid #c5d5f8;background:var(--surface);color:#2d5be3;cursor:pointer">제안사항</button>
+    <button class="rg-btn" data-g="와이즈버즈" onclick="setReflectGroup('와이즈버즈',this)"
+      style="font-size:12px;font-family:inherit;font-weight:500;padding:5px 14px;border-radius:20px;border:1px solid #f5d9a8;background:var(--surface);color:#a05c00;cursor:pointer">와버 확인</button>
+    <button class="rg-btn" data-g="아모레몰" onclick="setReflectGroup('아모레몰',this)"
+      style="font-size:12px;font-family:inherit;font-weight:500;padding:5px 14px;border-radius:20px;border:1px solid #b6e6cb;background:var(--surface);color:#1c7c4a;cursor:pointer">아모레몰 확인</button>
+  </div>
   <div class="reflect-table">
     <div class="rt-head" style="grid-template-columns:80px 1fr 1fr 130px">
       <div>날짜</div>
@@ -576,43 +623,91 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
 <div class="toast" id="toast"></div>
 
 <script>
-// ════ DATA STORE ════
-let ITEMS = JSON.parse(localStorage.getItem('review_items') || '[]');
-let nextId = parseInt(localStorage.getItem('review_next_id') || '1');
-let reflectStatusFilter = 'all';
+// ════ SUPABASE CONFIG ════
+const SUPABASE_URL = 'https://wjftaxzhtpbnpnviujic.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_2IDy34eeznw-C4CsE_83QQ_bnYqsyIv';
 
-// ── sample data (4월) seeded once
-if (ITEMS.length === 0) {
-  const seed = [
-    {group:'제안사항',channel:'카카오페이',title:'토스페이 쿠폰 MID 사용 제안',note:'라스트클릭 기준 쿠폰 사용 가능 (4탭 38행 참고) — 7일 기준 적용 후 모니터링',status:'progress',ref:'4탭 38행'},
-    {group:'제안사항',channel:'구글',title:'상시 소재 추가 투입 제안',note:'집행 대기 중인 특가존/건기식/헤어케어 등 상시 소재 구글 추가 투입',status:'pending',ref:''},
-    {group:'제안사항',channel:'메타',title:'MF3554 신규 소재 투입',note:'메타 MF3554 신규 소재 투입 제안',status:'pending',ref:''},
-    {group:'제안사항',channel:'메타/카카오',title:'써봐야안다 신규 소재 테스트',note:'메타 슬라이드 형식 / 비즈보드 카피 변경 테스트 제안',status:'pending',ref:'4탭 260행'},
-    {group:'제안사항',channel:'카카오',title:'KPF 타겟팅 테스트',note:'① 모먼트 발송: 멤플회원/비회원 분리  ② 채널 발송: 친구 아닌 여성 3054 기준',status:'pending',ref:''},
-    {group:'제안사항',channel:'메타',title:'메타 크리에이티브 다양성 확대',note:'AI 머신러닝 중복 인지 방지 — 첫구매/아모레위크/멤버십위크 등 고정 기획전 우선 운영',status:'pending',ref:''},
-    {group:'제안사항',channel:'인스타그램',title:'인스타그램 라이브 광고 활용',note:'인스타그램 라이브 광고 활용 제안',status:'pending',ref:'6탭 63행'},
-    {group:'와이즈버즈',channel:'구글',title:'써봐야안다 소재 ACe 제외 확인',note:'신규 소재는 소원님 업데이트 예정 — ACe 써봐야안다 OFF 확인 완료',status:'done',ref:''},
-    {group:'와이즈버즈',channel:'카카오',title:'아세페 기간 KPF 퀴즈형 고려',note:'채널 발송 인구통계정보 타겟팅 검토',status:'pending',ref:''},
-    {group:'와이즈버즈',channel:'유튜브',title:'유튜브 & 디멘드젠 성과 전체 비교',note:'이전 유튜브 캠페인 및 디멘드젠 조회 성과 전체 비교 — 명일 정리 후 전달 예정',status:'progress',ref:''},
-    {group:'와이즈버즈',channel:'카카오',title:'디멘드젠 캠페인 조회수 기준 정리',note:'지수 대리님 전달 완료',status:'done',ref:''},
-    {group:'와이즈버즈',channel:'구글/메타',title:'설화수 윤조에센스 캠페인 진행',note:'22일 2천만원 집행 / 매주 + 최종 리포팅 전달 / 유사타겟팅 확장',status:'progress',ref:''},
-    {group:'와이즈버즈',channel:'전체',title:'KPI 기반 성과 보고 체계 논의',note:'앱/구매/가입/트래픽 KPI별 보고 방향 논의 예정',status:'progress',ref:''},
-    {group:'아모레몰',channel:'구글',title:'구글 머천트 센터 계정 초대 요청',note:'아모레몰 → 와이즈버즈에 계정 초대 요청',status:'pending',ref:''},
-    {group:'아모레몰',channel:'인스타그램',title:'인스타그램 라방 진행 가능성 확인',note:'진행 가능 여부 확인 필요',status:'pending',ref:''},
-    {group:'추가요청',channel:'유튜브',title:'인스타/유튜브 라이브 동시 송출 확인',note:'동시 송출 가능 여부 및 레퍼 확인 요청',status:'pending',ref:''},
-    {group:'추가요청',channel:'유튜브',title:'유튜브 리타겟팅 광고 상품 확인',note:'유튜브 광고 리타겟팅 가능한 상품 확인 요청',status:'pending',ref:''},
-    {group:'추가요청',channel:'전체',title:'레지 캠페인 관련 논의',note:'레지 캠페인 관련 별도 논의 필요',status:'pending',ref:''},
-    {group:'추가요청',channel:'카카오',title:'카카오모먼트 카탈로그형 BETA 확인',note:'달바에서 발송 받은 카카오모먼트 카탈로그형 BETA 서비스 확인 요청',status:'pending',ref:''},
-  ];
-  seed.forEach(s => {
-    ITEMS.push({ id: nextId++, ym: '2026-04', ...s });
+async function sbFetch(path, options = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || 'return=representation',
+      ...options.headers
+    },
+    ...options
   });
-  persist();
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
 }
 
-function persist() {
-  localStorage.setItem('review_items', JSON.stringify(ITEMS));
-  localStorage.setItem('review_next_id', String(nextId));
+// ════ DATA STORE ════
+let ITEMS = [];
+let reflectStatusFilter = 'all';
+let reflectGroupFilter = 'all';
+
+async function loadItems() {
+  try {
+    const data = await sbFetch('review_items?order=id.asc');
+    ITEMS = data.map(r => ({
+      id: r.id,
+      ym: r.ym,
+      group: r.group_name,
+      title: r.title,
+      note: r.note || '',
+      status: r.status,
+      ref: r.ref || '',
+      channel: r.channel || '',
+    }));
+  } catch(e) {
+    console.error('데이터 로드 실패:', e);
+  }
+}
+
+async function persist() {
+  // Supabase에서는 각 변경시 직접 API 호출 — persist는 no-op
+}
+
+async function addItemToDb(item) {
+  const row = {
+    ym: item.ym,
+    group_name: item.group,
+    title: item.title,
+    note: item.note,
+    status: item.status,
+    ref: item.ref,
+    channel: item.channel,
+  };
+  const result = await sbFetch('review_items', {
+    method: 'POST',
+    body: JSON.stringify(row),
+    prefer: 'return=representation'
+  });
+  return result[0];
+}
+
+async function updateStatusInDb(id, status) {
+  await sbFetch(`review_items?id=eq.${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+    prefer: 'return=minimal'
+  });
+}
+
+async function deleteItemFromDb(id) {
+  await sbFetch(`review_items?id=eq.${id}`, {
+    method: 'DELETE',
+    prefer: 'return=minimal'
+  });
+}
+
+async function deleteMonthFromDb(ym) {
+  await sbFetch(`review_items?ym=eq.${ym}`, {
+    method: 'DELETE',
+    prefer: 'return=minimal'
+  });
 }
 
 // ════ YEAR SELECTS ════
@@ -635,6 +730,40 @@ function populateYearSelects() {
 }
 
 // ════ TAB SWITCHING ════
+const WRITE_PW = '2026';
+let writeAuthed = false;
+let pendingWriteBtn = null;
+
+function checkWriteAuth(btn) {
+  if (writeAuthed) {
+    switchTab('write', btn);
+    return;
+  }
+  pendingWriteBtn = btn;
+  const modal = document.getElementById('pw-modal');
+  modal.style.display = 'flex';
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-error').style.display = 'none';
+  setTimeout(() => document.getElementById('pw-input').focus(), 100);
+}
+
+function submitPw() {
+  const val = document.getElementById('pw-input').value;
+  if (val === WRITE_PW) {
+    writeAuthed = true;
+    closePwModal();
+    if (pendingWriteBtn) switchTab('write', pendingWriteBtn);
+  } else {
+    document.getElementById('pw-error').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+
+function closePwModal() {
+  document.getElementById('pw-modal').style.display = 'none';
+}
+
 function switchTab(id, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -651,6 +780,7 @@ function previewItems() {
   const raw = document.getElementById('w-bulk').value;
   const y = document.getElementById('w-year').value;
   const m = document.getElementById('w-month').value;
+  const group = document.querySelector('input[name="w-group"]:checked')?.value || '제안사항';
 
   // 줄 단위 분리, 빈 줄·기호 제거
   const lines = raw.split('\n')
@@ -662,7 +792,7 @@ function previewItems() {
   pendingItems = lines.map((title, i) => ({
     id: null,
     ym: `${y}-${m}`,
-    group: '기타',
+    group: group,
     channel: '',
     title,
     note: '',
@@ -704,20 +834,26 @@ function removePending(i) {
   document.getElementById('submit-hint').textContent = `${pendingItems.length}개 항목 확인 후 저장 확정하세요`;
 }
 
-function confirmSave() {
+async function confirmSave() {
   if (!pendingItems.length) return;
-  pendingItems.forEach(item => {
-    ITEMS.push({ ...item, id: nextId++ });
-  });
-  persist();
-  updateBadge();
-  const cnt = pendingItems.length;
-  pendingItems = [];
-  document.getElementById('w-bulk').value = '';
-  document.getElementById('preview-area').style.display = 'none';
-  document.getElementById('confirm-btn').style.display = 'none';
-  document.getElementById('submit-hint').textContent = '미리보기 후 저장 확정하면 모든 탭에 반영됩니다';
-  showToast(`${cnt}개 항목이 저장되었습니다 ✓`);
+  document.getElementById('confirm-btn').textContent = '저장 중...';
+  try {
+    for (const item of pendingItems) {
+      const saved = await addItemToDb(item);
+      ITEMS.push({ ...item, id: saved.id });
+    }
+    const cnt = pendingItems.length;
+    pendingItems = [];
+    document.getElementById('w-bulk').value = '';
+    document.getElementById('preview-area').style.display = 'none';
+    document.getElementById('confirm-btn').style.display = 'none';
+    document.getElementById('confirm-btn').textContent = '저장 확정';
+    document.getElementById('submit-hint').textContent = '미리보기 후 저장 확정하면 모든 탭에 반영됩니다';
+    showToast(`${cnt}개 항목이 저장되었습니다 ✓`);
+  } catch(e) {
+    showToast('저장 실패: ' + e.message);
+    document.getElementById('confirm-btn').textContent = '저장 확정';
+  }
 }
 
 // ════ MONTHLY ════
@@ -739,11 +875,24 @@ function renderMonthly() {
   el.innerHTML = yms.map(ym => {
     const [yr, mo] = ym.split('-');
     const ymItems = ITEMS.filter(x=>x.ym===ym);
-    const itemsHtml = ymItems.map(item => `
+    const groupMeta = {
+      '제안사항':  { label:'제안사항',    color:'#2d5be3', bg:'#eef2fd' },
+      '와이즈버즈':{ label:'와버 확인',   color:'#a05c00', bg:'#fff3e0' },
+      '아모레몰':  { label:'아모레몰 확인', color:'#1c7c4a', bg:'#eaf5ef' },
+    };
+    const itemsHtml = ymItems.map(item => {
+      const gm = groupMeta[item.group];
+      const groupBadge = gm
+        ? `<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:${gm.bg};color:${gm.color};white-space:nowrap;flex-shrink:0">${gm.label}</span>`
+        : '';
+      return `
       <div class="monthly-item" id="mitem-${item.id}">
         <div class="monthly-item-dot"></div>
         <div class="monthly-item-body">
-          <div class="monthly-item-title">${item.title}</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            ${groupBadge}
+            <span class="monthly-item-title" style="margin-bottom:0">${item.title}</span>
+          </div>
           ${item.note ? `<div class="monthly-item-note">${item.note}</div>` : ''}
         </div>
         <div class="monthly-item-status" style="display:flex;align-items:center;gap:8px">
@@ -752,44 +901,99 @@ function renderMonthly() {
             style="font-size:15px;color:var(--ink3);background:none;border:none;cursor:pointer;line-height:1;padding:2px 4px;border-radius:4px;transition:color .15s"
             onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--ink3)'">×</button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
     return `<div class="monthly-block">
       <div class="monthly-block-hd open" onclick="toggleBlock(this)">
         <span class="ym">${yr}년 ${parseInt(mo)}월</span>
-        <span class="cnt">${ymItems.length}건</span>
+        <span class="cnt" id="cnt-${ym}">${ymItems.length}건</span>
+        <div style="display:flex;gap:4px;margin-left:auto;margin-right:8px" onclick="event.stopPropagation()">
+          <button onclick="filterMonthGroup('${ym}','all',this)" class="mg-btn" data-ym="${ym}" data-group="all"
+            style="font-size:11px;font-family:inherit;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid #1a1916;background:#1a1916;color:#fff;cursor:pointer">
+            전체
+          </button>
+          <button onclick="filterMonthGroup('${ym}','제안사항',this)" class="mg-btn" data-ym="${ym}" data-group="제안사항"
+            style="font-size:11px;font-family:inherit;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid #c5d5f8;background:var(--surface);color:#2d5be3;cursor:pointer">
+            제안사항
+          </button>
+          <button onclick="filterMonthGroup('${ym}','와이즈버즈',this)" class="mg-btn" data-ym="${ym}" data-group="와이즈버즈"
+            style="font-size:11px;font-family:inherit;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid #f5d9a8;background:var(--surface);color:#a05c00;cursor:pointer">
+            와버 확인
+          </button>
+          <button onclick="filterMonthGroup('${ym}','아모레몰',this)" class="mg-btn" data-ym="${ym}" data-group="아모레몰"
+            style="font-size:11px;font-family:inherit;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid #b6e6cb;background:var(--surface);color:#1c7c4a;cursor:pointer">
+            아모레몰
+          </button>
+        </div>
         <button onclick="deleteMonth(event,'${ym}')"
-          style="margin-left:auto;margin-right:8px;font-size:11px;font-family:inherit;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid var(--rule);background:var(--surface);color:var(--red);cursor:pointer;transition:all .15s"
+          style="font-size:11px;font-family:inherit;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid var(--rule);background:var(--surface);color:var(--red);cursor:pointer;transition:all .15s;margin-right:8px"
           onmouseover="this.style.background='var(--red-bg)'" onmouseout="this.style.background='var(--surface)'">
           🗑 월 전체 삭제
         </button>
         <span class="chevron">▾</span>
       </div>
-      <div class="monthly-items open">${itemsHtml}</div>
+      <div class="monthly-items open" id="items-${ym}">${itemsHtml}</div>
     </div>`;
   }).join('');
 }
 
-function deleteItem(id) {
-  if (!confirm('이 항목을 삭제할까요?')) return;
-  const idx = ITEMS.findIndex(x => x.id === id);
-  if (idx !== -1) {
-    ITEMS.splice(idx, 1);
-    persist();
-    updateBadge();
-    renderMonthly();
-    renderReflect();
-  }
+const GROUP_STYLE = {
+  all:      { bg:'#1a1916', color:'#fff',     border:'#1a1916' },
+  제안사항: { bg:'#eef2fd', color:'#2d5be3',  border:'#c5d5f8' },
+  와이즈버즈:{ bg:'#fff3e0', color:'#a05c00', border:'#f5d9a8' },
+  아모레몰: { bg:'#eaf5ef', color:'#1c7c4a',  border:'#b6e6cb' },
+};
+
+function filterMonthGroup(ym, group, btn) {
+  document.querySelectorAll(`.mg-btn[data-ym="${ym}"]`).forEach(b => {
+    b.style.background = 'var(--surface)';
+    b.style.color = b.dataset.group === '제안사항' ? '#2d5be3'
+                  : b.dataset.group === '와이즈버즈' ? '#a05c00'
+                  : b.dataset.group === '아모레몰' ? '#1c7c4a' : 'var(--ink)';
+    b.style.borderColor = b.dataset.group === '제안사항' ? '#c5d5f8'
+                        : b.dataset.group === '와이즈버즈' ? '#f5d9a8'
+                        : b.dataset.group === '아모레몰' ? '#b6e6cb' : 'var(--rule)';
+    b.style.fontWeight = '500';
+  });
+  const gs = GROUP_STYLE[group] || GROUP_STYLE.all;
+  btn.style.background = gs.bg;
+  btn.style.color = gs.color;
+  btn.style.borderColor = gs.border;
+  btn.style.fontWeight = '700';
+
+  const container = document.getElementById(`items-${ym}`);
+  if (!container) return;
+  const rows = container.querySelectorAll('.monthly-item');
+  let visible = 0;
+  rows.forEach(row => {
+    const id = parseInt(row.id.replace('mitem-',''));
+    const item = ITEMS.find(x => x.id === id);
+    if (!item) return;
+    const show = group === 'all' || item.group === group;
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  const cntEl = document.getElementById(`cnt-${ym}`);
+  if (cntEl) cntEl.textContent = visible + '건';
 }
 
-function deleteMonth(e, ym) {
-  e.stopPropagation(); // 블록 접기 방지
+async function deleteItem(id) {
+  if (!confirm('이 항목을 삭제할까요?')) return;
+  await deleteItemFromDb(id);
+  const idx = ITEMS.findIndex(x => x.id === id);
+  if (idx !== -1) ITEMS.splice(idx, 1);
+  renderMonthly();
+  renderReflect();
+}
+
+async function deleteMonth(e, ym) {
+  e.stopPropagation();
   const [yr, mo] = ym.split('-');
   if (!confirm(`${yr}년 ${parseInt(mo)}월 항목 전체를 삭제할까요?`)) return;
   const before = ITEMS.length;
+  await deleteMonthFromDb(ym);
   ITEMS.splice(0, ITEMS.length, ...ITEMS.filter(x => x.ym !== ym));
-  persist();
-  updateBadge();
   renderMonthly();
   renderReflect();
   showToast(`${before - ITEMS.length}개 항목이 삭제되었습니다`);
@@ -800,6 +1004,23 @@ function toggleBlock(hd) {
 }
 
 // ════ REFLECT ════
+function setReflectGroup(g, btn) {
+  reflectGroupFilter = g;
+  document.querySelectorAll('.rg-btn').forEach(b => {
+    const bg = b.dataset.g;
+    b.style.fontWeight = '500';
+    b.style.background = 'var(--surface)';
+    b.style.color = bg === '제안사항' ? '#2d5be3' : bg === '와이즈버즈' ? '#a05c00' : bg === '아모레몰' ? '#1c7c4a' : 'var(--ink)';
+    b.style.borderColor = bg === '제안사항' ? '#c5d5f8' : bg === '와이즈버즈' ? '#f5d9a8' : bg === '아모레몰' ? '#b6e6cb' : 'var(--rule)';
+  });
+  const gs = GROUP_STYLE[g] || GROUP_STYLE.all;
+  btn.style.background = gs.bg;
+  btn.style.color = gs.color;
+  btn.style.borderColor = gs.border;
+  btn.style.fontWeight = '700';
+  renderReflect();
+}
+
 function renderReflect() {
   const y = document.getElementById('r-year').value;
   const m = document.getElementById('r-month').value;
@@ -808,6 +1029,7 @@ function renderReflect() {
   if (m) data = data.filter(x => x.ym === `${y}-${m}`);
   else if (y) data = data.filter(x => x.ym.startsWith(y));
   if (reflectStatusFilter !== 'all') data = data.filter(x => x.status === reflectStatusFilter);
+  if (reflectGroupFilter !== 'all') data = data.filter(x => x.group === reflectGroupFilter);
 
   const all = m ? ITEMS.filter(x=>x.ym===`${y}-${m}`) : ITEMS.filter(x=>x.ym.startsWith(y));
   const done     = all.filter(x=>x.status==='done').length;
@@ -823,18 +1045,27 @@ function renderReflect() {
     { l:'미진행',  v: pending+'건',    cls:'red' },
   ].map(m => `<div class="metric"><div class="metric-label">${m.l}</div><div class="metric-val ${m.cls}">${m.v}</div></div>`).join('');
 
-  // 5칸 메트릭
   document.getElementById('reflect-metrics').style.gridTemplateColumns = 'repeat(5,1fr)';
 
   const rows = document.getElementById('reflect-rows');
   if (!data.length) { rows.innerHTML = '<div class="empty-msg">해당 조건의 항목이 없습니다</div>'; return; }
 
+  const groupMeta = {
+    '제안사항':  { label:'제안사항',     color:'#2d5be3', bg:'#eef2fd' },
+    '와이즈버즈':{ label:'와버 확인',    color:'#a05c00', bg:'#fff3e0' },
+    '아모레몰':  { label:'아모레몰 확인', color:'#1c7c4a', bg:'#eaf5ef' },
+  };
+
   rows.innerHTML = data.map(item => {
     const [yr,mo] = item.ym.split('-');
     const sClass = { checking:'checking', progress:'progress', done:'done', pending:'pending' }[item.status] || 'pending';
+    const gm = groupMeta[item.group];
+    const groupBadge = gm ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:${gm.bg};color:${gm.color};white-space:nowrap">${gm.label}</span>` : '';
     return `<div class="rt-row" style="grid-template-columns:80px 1fr 1fr 130px;align-items:start;padding:14px 16px;">
       <div class="rt-cell ym" style="padding-top:4px">${yr}.${mo}</div>
-      <div class="rt-cell title">${item.title}</div>
+      <div class="rt-cell title">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">${groupBadge}<span>${item.title}</span></div>
+      </div>
       <div class="rt-cell note" style="font-size:12px;color:var(--ink2);line-height:1.55;white-space:pre-wrap;padding-right:12px">${item.note || '—'}</div>
       <div class="rt-cell">
         <select class="status-sel s-${sClass}" onchange="changeStatus(${item.id},this.value)">
@@ -853,9 +1084,13 @@ function setReflectFilter(s, btn) {
   btn.classList.add('on');
   renderReflect();
 }
-function changeStatus(id, val) {
+async function changeStatus(id, val) {
   const item = ITEMS.find(x=>x.id===id);
-  if (item) { item.status = val; persist(); renderReflect(); updateBadge(); }
+  if (item) {
+    item.status = val;
+    await updateStatusInDb(id, val);
+    renderReflect();
+  }
 }
 
 // ════ SEARCH ════
@@ -878,16 +1113,17 @@ function doSearch() {
   }
   el.innerHTML = hits.map(item => {
     const [yr,mo] = item.ym.split('-');
+    const gm = { '제안사항':{ label:'제안사항', color:'#2d5be3', bg:'#eef2fd' }, '와이즈버즈':{ label:'와버 확인', color:'#a05c00', bg:'#fff3e0' }, '아모레몰':{ label:'아모레몰 확인', color:'#1c7c4a', bg:'#eaf5ef' } }[item.group];
+    const groupBadge = gm ? `<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:${gm.bg};color:${gm.color}">${gm.label}</span>` : '';
     return `<div class="search-hit">
       <span class="search-hit-ym">${yr}년 ${parseInt(mo)}월</span>
       <div class="search-hit-body">
         <div class="search-hit-title">${hl(item.title)}</div>
         ${item.note ? `<div class="search-hit-note">${hl(item.note)}</div>` : ''}
-        <div class="search-hit-chips">
-          ${item.channel ? `<span class="chip chip-ch">${item.channel}</span>` : ''}
-          <span class="chip chip-ref">${item.group}</span>
-          <span class="sbadge ${item.status}" style="font-size:11px">${statusLabel(item.status)}</span>
-        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;margin-left:12px">
+        ${groupBadge}
+        <span class="sbadge ${item.status}" style="font-size:11px">${statusLabel(item.status)}</span>
       </div>
     </div>`;
   }).join('');
@@ -938,10 +1174,13 @@ function saveFile() {
 }
 
 // ════ INIT ════
-populateYearSelects();
-updateBadge();
-renderMonthly();
-renderReflect();
+async function init() {
+  populateYearSelects();
+  await loadItems();
+  renderMonthly();
+  renderReflect();
+}
+init();
 </script>
 </body>
 </html>

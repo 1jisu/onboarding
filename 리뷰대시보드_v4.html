@@ -430,7 +430,7 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
 
 <!-- TAB BAR -->
 <nav class="tab-bar">
-  <button class="tab-btn active" data-tab="write" onclick="checkWriteAuth(this)">
+  <button class="tab-btn active" data-tab="write" onclick="switchTab('write',this)">
     <span class="tab-icon">✏️</span> 리뷰 작성
   </button>
   <button class="tab-btn" data-tab="monthly" onclick="switchTab('monthly',this)">
@@ -444,23 +444,7 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
   </button>
 </nav>
 
-<!-- 비밀번호 모달 -->
-<div id="pw-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:999;display:none;align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:16px;padding:32px 28px;width:340px;box-shadow:0 8px 40px rgba(0,0,0,0.15)">
-    <div style="font-size:18px;font-weight:700;margin-bottom:6px">🔒 리뷰 작성</div>
-    <div style="font-size:13px;color:#6b6a62;margin-bottom:20px">권한이 있는 분만 작성할 수 있어요</div>
-    <input type="password" id="pw-input" placeholder="비밀번호 입력"
-      style="width:100%;font-family:inherit;font-size:14px;padding:10px 14px;border:1px solid #e2e1d8;border-radius:8px;outline:none;margin-bottom:10px"
-      onkeydown="if(event.key==='Enter')submitPw()" />
-    <div id="pw-error" style="font-size:12px;color:#c0392b;margin-bottom:10px;display:none">비밀번호가 틀렸어요</div>
-    <div style="display:flex;gap:8px">
-      <button onclick="closePwModal()"
-        style="flex:1;font-family:inherit;font-size:13px;padding:9px;border-radius:8px;border:1px solid #e2e1d8;background:#fff;cursor:pointer">취소</button>
-      <button onclick="submitPw()"
-        style="flex:1;font-family:inherit;font-size:13px;font-weight:700;padding:9px;border-radius:8px;border:none;background:#1a1916;color:#fff;cursor:pointer">확인</button>
-    </div>
-  </div>
-</div>
+
 
 <!-- ════════════════════════ TAB 1: 리뷰 작성 ════════════════════════ -->
 <section class="page active" id="tab-write">
@@ -730,39 +714,6 @@ function populateYearSelects() {
 }
 
 // ════ TAB SWITCHING ════
-const WRITE_PW = '2026';
-let writeAuthed = false;
-let pendingWriteBtn = null;
-
-function checkWriteAuth(btn) {
-  if (writeAuthed) {
-    switchTab('write', btn);
-    return;
-  }
-  pendingWriteBtn = btn;
-  const modal = document.getElementById('pw-modal');
-  modal.style.display = 'flex';
-  document.getElementById('pw-input').value = '';
-  document.getElementById('pw-error').style.display = 'none';
-  setTimeout(() => document.getElementById('pw-input').focus(), 100);
-}
-
-function submitPw() {
-  const val = document.getElementById('pw-input').value;
-  if (val === WRITE_PW) {
-    writeAuthed = true;
-    closePwModal();
-    if (pendingWriteBtn) switchTab('write', pendingWriteBtn);
-  } else {
-    document.getElementById('pw-error').style.display = 'block';
-    document.getElementById('pw-input').value = '';
-    document.getElementById('pw-input').focus();
-  }
-}
-
-function closePwModal() {
-  document.getElementById('pw-modal').style.display = 'none';
-}
 
 function switchTab(id, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));

@@ -852,7 +852,7 @@ function renderMonthly() {
       return `
       <div class="monthly-item" id="mitem-${item.id}">
         <div class="monthly-item-dot"></div>
-        <div class="monthly-item-body">
+        <div class="monthly-item-body" id="body-${item.id}">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             ${groupBadge}
             <span class="monthly-item-title" style="margin-bottom:0">${item.title}</span>
@@ -861,6 +861,9 @@ function renderMonthly() {
         </div>
         <div class="monthly-item-status" style="display:flex;align-items:center;gap:8px">
           <span class="sbadge ${item.status}">${statusLabel(item.status)}</span>
+          <button onclick="startEdit(${item.id})" title="수정"
+            style="font-size:13px;color:var(--ink3);background:none;border:none;cursor:pointer;line-height:1;padding:2px 4px;border-radius:4px;transition:color .15s"
+            onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--ink3)'">✎</button>
           <button onclick="deleteItem(${item.id})" title="항목 삭제"
             style="font-size:15px;color:var(--ink3);background:none;border:none;cursor:pointer;line-height:1;padding:2px 4px;border-radius:4px;transition:color .15s"
             onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--ink3)'">×</button>
@@ -940,6 +943,42 @@ function filterMonthGroup(ym, group, btn) {
   });
   const cntEl = document.getElementById(`cnt-${ym}`);
   if (cntEl) cntEl.textContent = visible + '건';
+}
+
+function startEdit(id) {
+  const item = ITEMS.find(x => x.id === id);
+  if (!item) return;
+  const body = document.getElementById(`body-${id}`);
+  if (!body) return;
+  body.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:7px;">
+      <input id="edit-title-${id}" class="form-input" style="font-size:13px;font-weight:500;" value="${item.title.replace(/"/g,'&quot;')}" />
+      <textarea id="edit-note-${id}" class="form-ta" style="min-height:52px;font-size:12px;">${item.note||''}</textarea>
+      <div style="display:flex;gap:6px;">
+        <button onclick="saveEdit(${id})"
+          style="font-family:inherit;font-size:12px;font-weight:700;padding:5px 14px;border-radius:6px;border:none;background:var(--ink);color:#fff;cursor:pointer">저장</button>
+        <button onclick="renderMonthly()"
+          style="font-family:inherit;font-size:12px;padding:5px 14px;border-radius:6px;border:1px solid var(--rule);background:#fff;cursor:pointer">취소</button>
+      </div>
+    </div>`;
+}
+
+async function saveEdit(id) {
+  const title = document.getElementById(`edit-title-${id}`).value.trim();
+  const note = document.getElementById(`edit-note-${id}`).value.trim();
+  if (!title) { showToast('제목을 입력해주세요'); return; }
+  const item = ITEMS.find(x => x.id === id);
+  if (!item) return;
+  item.title = title;
+  item.note = note;
+  await sbFetch(`review_items?id=eq.${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ title, note }),
+    prefer: 'return=minimal'
+  });
+  showToast('수정되었습니다 ✓');
+  renderMonthly();
+  renderReflect();
 }
 
 async function deleteItem(id) {

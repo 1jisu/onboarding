@@ -755,6 +755,7 @@ function previewItems() {
   previewArea.style.display = 'block';
   renderPreviewList();
 
+  document.querySelector('.submit-btn[onclick="previewItems()"]').style.display = 'none';
   document.getElementById('confirm-btn').style.display = 'inline-block';
   document.getElementById('submit-hint').textContent = `${lines.length}개 항목 확인 후 저장 확정하세요`;
 }
@@ -799,6 +800,7 @@ async function confirmSave() {
     document.getElementById('preview-area').style.display = 'none';
     document.getElementById('confirm-btn').style.display = 'none';
     document.getElementById('confirm-btn').textContent = '저장 확정';
+    document.querySelector('.submit-btn[onclick="previewItems()"]').style.display = 'inline-block';
     document.getElementById('submit-hint').textContent = '미리보기 후 저장 확정하면 모든 탭에 반영됩니다';
     showToast(`${cnt}개 항목이 저장되었습니다 ✓`);
   } catch(e) {

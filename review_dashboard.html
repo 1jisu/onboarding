@@ -492,7 +492,7 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
       </div>
       <div class="form-row full">
         <label class="form-label">회의록 내용 <span style="color:var(--red)">*</span></label>
-        <textarea class="form-ta" id="w-bulk" style="min-height:180px" placeholder="회의록 내용을 그대로 붙여넣으세요. 줄마다 항목 하나로 자동 분리됩니다.
+        <textarea class="form-ta" id="w-bulk" style="min-height:180px" oninput="resetPreview()" placeholder="회의록 내용을 그대로 붙여넣으세요. 줄마다 항목 하나로 자동 분리됩니다.
 
 예시)
 토스페이 소재 변경 제안
@@ -509,7 +509,7 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
 
     <hr class="form-sep">
     <div class="submit-row">
-      <button class="submit-btn" onclick="previewItems()">미리보기</button>
+      <button class="submit-btn" id="preview-btn" onclick="previewItems()">미리보기</button>
       <button class="submit-btn" id="confirm-btn" style="display:none;background:var(--green)" onclick="confirmSave()">저장 확정</button>
       <span class="submit-hint" id="submit-hint">미리보기 후 저장 확정하면 모든 탭에 반영됩니다</span>
     </div>
@@ -727,6 +727,14 @@ function switchTab(id, btn) {
 // ════ WRITE ════
 let pendingItems = [];
 
+function resetPreview() {
+  pendingItems = [];
+  document.getElementById('preview-area').style.display = 'none';
+  document.getElementById('preview-btn').style.display = 'inline-block';
+  document.getElementById('confirm-btn').style.display = 'none';
+  document.getElementById('submit-hint').textContent = '미리보기 후 저장 확정하면 모든 탭에 반영됩니다';
+}
+
 function previewItems() {
   const raw = document.getElementById('w-bulk').value;
   const y = document.getElementById('w-year').value;
@@ -755,7 +763,7 @@ function previewItems() {
   previewArea.style.display = 'block';
   renderPreviewList();
 
-  document.querySelector('.submit-btn[onclick="previewItems()"]').style.display = 'none';
+  document.getElementById('preview-btn').style.display = 'none';
   document.getElementById('confirm-btn').style.display = 'inline-block';
   document.getElementById('submit-hint').textContent = `${lines.length}개 항목 확인 후 저장 확정하세요`;
 }
@@ -800,7 +808,7 @@ async function confirmSave() {
     document.getElementById('preview-area').style.display = 'none';
     document.getElementById('confirm-btn').style.display = 'none';
     document.getElementById('confirm-btn').textContent = '저장 확정';
-    document.querySelector('.submit-btn[onclick="previewItems()"]').style.display = 'inline-block';
+    document.getElementById('preview-btn').style.display = 'inline-block';
     document.getElementById('submit-hint').textContent = '미리보기 후 저장 확정하면 모든 탭에 반영됩니다';
     showToast(`${cnt}개 항목이 저장되었습니다 ✓`);
   } catch(e) {

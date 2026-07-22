@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>월간 리뷰 대시보드</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & VARS ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --surface2: #f0efe9;
+  --surface3: #e8e7df;
+  --ink: #1a1916;
+  --ink2: #6b6a62;
+  --ink3: #a8a79f;
+  --rule: #e2e1d8;
+  --accent: #2d5be3;
+  --accent-light: #eef2fd;
+  --green: #1c7c4a;
+  --green-bg: #eaf5ef;
+  --amber: #a05c00;
+  --amber-bg: #fff3e0;
+  --red: #c0392b;
+  --red-bg: #fdecea;
+  --tab-h: 52px;
+  --header-h: 60px;
+  --r: 10px;
+  --r-lg: 16px;
+  font-size: 14px;
+}
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ── TOP HEADER ── */
+.top-header {
+  height: var(--header-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-icon {
+  width: 30px; height: 30px;
+  background: var(--ink);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 14px; font-weight: 700;
+  font-family: 'DM Mono', monospace;
+  flex-shrink: 0;
+}
+.brand-name {
+  font-size: 14px; font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.brand-divider { width: 1px; height: 18px; background: var(--rule); }
+.brand-sub { font-size: 12px; color: var(--ink3); }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.save-btn {
+  font-family: inherit; font-size: 12px; font-weight: 500;
+  padding: 6px 16px; border-radius: 20px;
+  background: var(--ink); color: #fff; border: none;
+  cursor: pointer; transition: opacity .15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.save-btn:hover { opacity: .8; }
+.item-count-badge {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: var(--ink3); background: var(--surface2);
+  padding: 3px 10px; border-radius: 20px;
+}
+
+/* ── TAB BAR ── */
+.tab-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  padding: 0 28px;
+  gap: 0;
+}
+.tab-btn {
+  font-family: inherit; font-size: 13px; font-weight: 400;
+  padding: 0 20px; height: var(--tab-h);
+  background: none; border: none; cursor: pointer;
+  color: var(--ink2); position: relative;
+  transition: color .15s;
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 7px;
+}
+.tab-btn::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: var(--ink); transform: scaleX(0);
+  transition: transform .2s;
+}
+.tab-btn.active { color: var(--ink); font-weight: 500; }
+.tab-btn.active::after { transform: scaleX(1); }
+.tab-btn:hover { color: var(--ink); }
+.tab-icon { font-size: 15px; }
+
+/* ── PAGE WRAPPER ── */
+.page { display: none; padding: 28px; max-width: 1100px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* ── SECTION HEADER ── */
+.section-hd {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px; flex-wrap: wrap;
+}
+.section-hd h2 {
+  font-size: 16px; font-weight: 700; letter-spacing: -0.02em;
+}
+.section-hd p { font-size: 12px; color: var(--ink3); margin-left: 4px; }
+
+/* ── MONTH FILTER BAR ── */
+.month-bar {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.month-bar label { font-size: 12px; color: var(--ink3); font-weight: 500; margin-right: 4px; }
+.month-bar select {
+  font-family: inherit; font-size: 13px;
+  padding: 5px 10px; border-radius: 8px;
+  border: 1px solid var(--rule);
+  background: var(--surface2); color: var(--ink);
+  cursor: pointer; outline: none;
+}
+.month-bar select:focus { border-color: var(--accent); }
+.month-clear {
+  font-family: inherit; font-size: 12px;
+  padding: 5px 12px; border-radius: 8px;
+  border: 1px solid var(--rule);
+  background: none; color: var(--ink2);
+  cursor: pointer;
+}
+.month-clear:hover { background: var(--surface2); }
+
+/* ── METRIC STRIP ── */
+.metrics {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 12px; margin-bottom: 24px;
+}
+.metric {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  padding: 16px 18px;
+}
+.metric-label { font-size: 11px; color: var(--ink3); font-weight: 500; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 8px; }
+.metric-val { font-size: 26px; font-weight: 700; font-family: 'DM Mono', monospace; letter-spacing: -0.03em; color: var(--ink); }
+.metric-val.green { color: var(--green); }
+.metric-val.amber { color: var(--amber); }
+.metric-val.red { color: var(--red); }
+
+/* ── WRITE TAB ── */
+.write-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  padding: 28px;
+  max-width: 680px;
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.form-row { display: flex; flex-direction: column; gap: 5px; }
+.form-row.full { grid-column: 1/-1; }
+.form-label { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink3); }
+.form-input, .form-select, .form-ta {
+  font-family: inherit; font-size: 13px;
+  padding: 9px 12px; border-radius: 8px;
+  border: 1px solid var(--rule);
+  background: var(--bg); color: var(--ink);
+  outline: none; transition: border-color .15s;
+  width: 100%;
+}
+.form-input:focus, .form-select:focus, .form-ta:focus { border-color: var(--accent); background: #fff; }
+.form-ta { resize: vertical; min-height: 80px; line-height: 1.6; }
+.form-sep { border: none; border-top: 1px solid var(--rule); margin: 4px 0 14px; }
+.submit-row { display: flex; align-items: center; gap: 10px; }
+.submit-btn {
+  font-family: inherit; font-size: 13px; font-weight: 700;
+  padding: 10px 26px; border-radius: 8px;
+  background: var(--ink); color: #fff; border: none;
+  cursor: pointer; transition: opacity .15s;
+}
+.submit-btn:hover { opacity: .8; }
+.submit-hint { font-size: 12px; color: var(--ink3); }
+.toast {
+  position: fixed; bottom: 28px; right: 28px;
+  background: var(--ink); color: #fff;
+  font-size: 13px; padding: 10px 20px;
+  border-radius: 8px; z-index: 999;
+  opacity: 0; transform: translateY(8px);
+  transition: all .25s; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: none; }
+
+/* ── MONTHLY TAB ── */
+.monthly-block {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.monthly-block-hd {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface2);
+  cursor: pointer; user-select: none;
+}
+.monthly-block-hd .ym {
+  font-size: 14px; font-weight: 700;
+  font-family: 'DM Mono', monospace;
+  color: var(--ink); letter-spacing: -0.01em;
+}
+.monthly-block-hd .cnt {
+  font-size: 11px; color: var(--ink3);
+  background: var(--surface3);
+  padding: 2px 9px; border-radius: 20px;
+  font-family: 'DM Mono', monospace;
+}
+.monthly-block-hd .chevron {
+  margin-left: auto; color: var(--ink3);
+  transition: transform .2s; font-size: 16px;
+}
+.monthly-block-hd.open .chevron { transform: rotate(180deg); }
+.monthly-items { display: none; }
+.monthly-items.open { display: block; }
+.monthly-group-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink3); padding: 12px 20px 6px;
+  border-top: 1px solid var(--rule);
+}
+.monthly-group-label:first-child { border-top: none; }
+.monthly-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 20px; border-top: 1px solid var(--rule);
+  transition: background .1s;
+}
+.monthly-item:hover { background: var(--surface2); }
+.monthly-item-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ink3); flex-shrink: 0; margin-top: 7px;
+}
+.monthly-item-body { flex: 1; }
+.monthly-item-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.monthly-item-note { font-size: 12px; color: var(--ink2); }
+.monthly-item-meta { display: flex; gap: 6px; margin-top: 5px; flex-wrap: wrap; }
+.chip {
+  font-size: 11px; padding: 2px 8px; border-radius: 20px;
+  font-weight: 400;
+}
+.chip-ch { background: var(--accent-light); color: var(--accent); }
+.chip-ref { background: var(--surface3); color: var(--ink2); }
+.monthly-item-status { flex-shrink: 0; }
+
+/* ── STATUS BADGE / SELECT ── */
+.sbadge {
+  font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; white-space: nowrap;
+}
+.sbadge.done { background: var(--green-bg); color: var(--green); }
+.sbadge.progress { background: var(--amber-bg); color: var(--amber); }
+.sbadge.pending { background: var(--red-bg); color: var(--red); }
+.status-sel {
+  font-family: inherit; font-size: 11px;
+  padding: 3px 7px; border-radius: 8px;
+  border: 1px solid var(--rule);
+  background: var(--surface2); color: var(--ink2);
+  cursor: pointer; outline: none;
+}
+
+/* ── REFLECT TAB ── */
+.reflect-filters {
+  display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.rf-btn {
+  font-family: inherit; font-size: 12px;
+  padding: 5px 14px; border-radius: 20px;
+  border: 1px solid var(--rule);
+  background: var(--surface); color: var(--ink2);
+  cursor: pointer; transition: all .15s;
+}
+.rf-btn.on { font-weight: 500; }
+.rf-btn.on[data-s="all"]      { background: var(--surface3); color: var(--ink); border-color: var(--surface3); }
+.rf-btn.on[data-s="checking"] { background: #e8f0fe; color: #1a56c4; border-color: #c5d5f8; }
+.rf-btn.on[data-s="progress"] { background: var(--amber-bg); color: var(--amber); border-color: #f5d9a8; }
+.rf-btn.on[data-s="done"]     { background: var(--green-bg); color: var(--green); border-color: #b6e6cb; }
+.rf-btn.on[data-s="pending"]  { background: var(--red-bg); color: var(--red); border-color: #f5b8b3; }
+.reflect-table {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.rt-head {
+  display: grid;
+  grid-template-columns: 80px 1fr 120px 100px 110px;
+  padding: 10px 16px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--rule);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .05em; text-transform: uppercase;
+  color: var(--ink3);
+}
+.rt-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 120px 100px 110px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--rule);
+  align-items: center;
+  transition: background .1s;
+  animation: fadeUp .25s ease both;
+}
+.rt-row:hover { background: var(--surface2); }
+@keyframes fadeUp { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+.rt-cell { font-size: 13px; }
+.rt-cell.ym { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink2); }
+.rt-cell.title { font-weight: 500; padding-right: 12px; }
+.rt-cell.note { font-size: 12px; color: var(--ink2); }
+.empty-msg {
+  text-align: center; padding: 48px 0;
+  font-size: 13px; color: var(--ink3);
+}
+/* status badge colors */
+.sbadge.checking { background: #e8f0fe; color: #1a56c4; }
+.sbadge.progress { background: var(--amber-bg); color: var(--amber); }
+.sbadge.done     { background: var(--green-bg); color: var(--green); }
+.sbadge.pending  { background: var(--red-bg); color: var(--red); }
+.sbadge.none     { background: #f0f0f0; color: #888; }
+/* status select option colors via class on parent */
+.status-sel.s-checking { border-color: #c5d5f8; color: #1a56c4; background: #e8f0fe; }
+.status-sel.s-progress { border-color: #f5d9a8; color: var(--amber); background: var(--amber-bg); }
+.status-sel.s-done     { border-color: #b6e6cb; color: var(--green); background: var(--green-bg); }
+.status-sel.s-pending  { border-color: #f5b8b3; color: var(--red); background: var(--red-bg); }
+.status-sel.s-none     { border-color: #ddd; color: #888; background: #f0f0f0; }
+
+/* ── SEARCH TAB ── */
+.search-hero {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex; gap: 10px; align-items: center;
+}
+.search-hero input {
+  flex: 1; font-family: inherit; font-size: 15px;
+  padding: 10px 16px; border-radius: 8px;
+  border: 1px solid var(--rule);
+  background: var(--bg); color: var(--ink);
+  outline: none; transition: border-color .15s;
+}
+.search-hero input:focus { border-color: var(--accent); background: #fff; }
+.search-hero input::placeholder { color: var(--ink3); }
+.search-hero button {
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  padding: 10px 20px; border-radius: 8px;
+  background: var(--ink); color: #fff; border: none;
+  cursor: pointer; transition: opacity .15s; white-space: nowrap;
+}
+.search-hero button:hover { opacity: .8; }
+.search-results { display: flex; flex-direction: column; gap: 8px; }
+.search-hit {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+  padding: 14px 18px;
+  display: flex; align-items: flex-start; gap: 14px;
+  animation: fadeUp .2s ease both;
+}
+.search-hit-ym {
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  color: var(--accent); font-weight: 500;
+  background: var(--accent-light);
+  padding: 3px 10px; border-radius: 6px;
+  white-space: nowrap; flex-shrink: 0; margin-top: 1px;
+}
+.search-hit-body { flex: 1; }
+.search-hit-title { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+.search-hit-note { font-size: 12px; color: var(--ink2); }
+.search-hit-chips { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
+.search-empty { text-align: center; padding: 48px 0; font-size: 13px; color: var(--ink3); }
+
+/* ── UTIL ── */
+@media (max-width: 700px) {
+  .page { padding: 16px; }
+  .metrics { grid-template-columns: repeat(2,1fr); }
+  .rt-head, .rt-row { grid-template-columns: 70px 1fr 90px; }
+  .rt-cell.note, .rt-cell:nth-child(5) { display: none; }
+  .tab-btn { padding: 0 12px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP HEADER -->
+<header class="top-header">
+  <div class="brand">
+    <div class="brand-icon">R</div>
+    <span class="brand-name">월간 리뷰</span>
+    <div class="brand-divider"></div>
+    <span class="brand-sub">26.07 ver.</span>
+  </div>
+  <div class="header-right">
+  </div>
+</header>
+
+<!-- TAB BAR -->
+<nav class="tab-bar">
+  <button class="tab-btn active" data-tab="write" onclick="switchTab('write',this)">
+    <span class="tab-icon">✏️</span> 리뷰 작성
+  </button>
+  <button class="tab-btn" data-tab="monthly" onclick="switchTab('monthly',this)">
+    <span class="tab-icon">📋</span> 월별 리뷰
+  </button>
+  <button class="tab-btn" data-tab="reflect" onclick="switchTab('reflect',this)">
+    <span class="tab-icon">✅</span> 리뷰 반영
+  </button>
+  <button class="tab-btn" data-tab="search" onclick="switchTab('search',this)">
+    <span class="tab-icon">🔍</span> 리뷰 검색
+  </button>
+</nav>
+
+
+
+<!-- ════════════════════════ TAB 1: 리뷰 작성 ════════════════════════ -->
+<section class="page active" id="tab-write">
+  <div class="section-hd">
+    <h2>리뷰 작성</h2>
+    <p>회의록을 붙여넣으면 줄 단위로 항목이 자동 분리되어 저장됩니다</p>
+  </div>
+
+  <div class="write-card">
+    <div class="form-grid">
+      <div class="form-row">
+        <label class="form-label">연도</label>
+        <select class="form-select" id="w-year"></select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">월</label>
+        <select class="form-select" id="w-month">
+          <option value="01">1월</option><option value="02">2월</option>
+          <option value="03">3월</option><option value="04">4월</option>
+          <option value="05">5월</option><option value="06">6월</option>
+          <option value="07">7월</option><option value="08">8월</option>
+          <option value="09">9월</option><option value="10">10월</option>
+          <option value="11">11월</option><option value="12">12월</option>
+        </select>
+      </div>
+      <div class="form-row full">
+        <label class="form-label">구분 <span style="color:var(--red)">*</span></label>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;padding:6px 0">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--ink)">
+            <input type="radio" name="w-group" value="제안사항" checked
+              style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer">
+            월간리뷰 제안사항
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--ink)">
+            <input type="radio" name="w-group" value="와이즈버즈"
+              style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer">
+            와이즈버즈 확인 필요
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--ink)">
+            <input type="radio" name="w-group" value="아모레몰"
+              style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer">
+            아모레몰 확인 필요
+          </label>
+        </div>
+      </div>
+      <div class="form-row full">
+        <label class="form-label">회의록 내용 <span style="color:var(--red)">*</span></label>
+        <textarea class="form-ta" id="w-bulk" style="min-height:180px" oninput="resetPreview()" placeholder="회의록 내용을 그대로 붙여넣으세요. 줄마다 항목 하나로 자동 분리됩니다.
+
+예시)
+토스페이 소재 변경 제안
+구글 매체 타겟 끄기
+메타 소재 테스트 진행"></textarea>
+      </div>
+    </div>
+
+    <!-- 미리보기 영역 -->
+    <div id="preview-area" style="display:none; margin-top:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;">미리보기 — 아래 항목들이 저장됩니다</div>
+      <div id="preview-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"></div>
+    </div>
+
+    <hr class="form-sep">
+    <div class="submit-row">
+      <button class="submit-btn" id="preview-btn" onclick="previewItems()">미리보기</button>
+      <button class="submit-btn" id="confirm-btn" style="display:none;background:var(--green)" onclick="confirmSave()">저장 확정</button>
+      <span class="submit-hint" id="submit-hint">미리보기 후 저장 확정하면 모든 탭에 반영됩니다</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════ TAB 2: 월별 리뷰 ════════════════════════ -->
+<section class="page" id="tab-monthly">
+  <div class="section-hd">
+    <h2>월별 리뷰</h2>
+    <p>월별 전체 회의록을 확인합니다</p>
+  </div>
+  <div class="month-bar">
+    <label>연도</label>
+    <select id="m-year" onchange="renderMonthly()"></select>
+    <label>월</label>
+    <select id="m-month" onchange="renderMonthly()">
+      <option value="">전체</option>
+      <option value="01">1월</option><option value="02">2월</option>
+      <option value="03">3월</option><option value="04">4월</option>
+      <option value="05">5월</option><option value="06">6월</option>
+      <option value="07">7월</option><option value="08">8월</option>
+      <option value="09">9월</option><option value="10">10월</option>
+      <option value="11">11월</option><option value="12">12월</option>
+    </select>
+    <button class="month-clear" onclick="clearMonthFilter('m')">전체 보기</button>
+  </div>
+  <div id="monthly-content"></div>
+</section>
+
+<!-- ════════════════════════ TAB 3: 리뷰 반영 ════════════════════════ -->
+<section class="page" id="tab-reflect">
+  <div class="section-hd">
+    <h2>리뷰 반영</h2>
+    <p>요청사항의 진행 상태를 관리합니다</p>
+  </div>
+  <div class="month-bar">
+    <label>연도</label>
+    <select id="r-year" onchange="renderReflect()"></select>
+    <label>월</label>
+    <select id="r-month" onchange="renderReflect()">
+      <option value="">전체</option>
+      <option value="01">1월</option><option value="02">2월</option>
+      <option value="03">3월</option><option value="04">4월</option>
+      <option value="05">5월</option><option value="06">6월</option>
+      <option value="07">7월</option><option value="08">8월</option>
+      <option value="09">9월</option><option value="10">10월</option>
+      <option value="11">11월</option><option value="12">12월</option>
+    </select>
+    <button class="month-clear" onclick="clearMonthFilter('r')">전체 보기</button>
+  </div>
+  <div class="metrics" id="reflect-metrics"></div>
+  <div class="reflect-filters" id="reflect-filters">
+    <button class="rf-btn on" data-s="all"      onclick="setReflectFilter('all',this)">전체</button>
+    <button class="rf-btn"    data-s="none"     onclick="setReflectFilter('none',this)">-</button>
+    <button class="rf-btn"    data-s="checking" onclick="setReflectFilter('checking',this)">확인 중</button>
+    <button class="rf-btn"    data-s="progress" onclick="setReflectFilter('progress',this)">진행 중</button>
+    <button class="rf-btn"    data-s="done"     onclick="setReflectFilter('done',this)">완료</button>
+    <button class="rf-btn"    data-s="pending"  onclick="setReflectFilter('pending',this)">미진행</button>
+  </div>
+  <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+    <button class="rg-btn" data-g="all" onclick="setReflectGroup('all',this)"
+      style="font-size:12px;font-family:inherit;font-weight:700;padding:5px 14px;border-radius:20px;border:1px solid #1a1916;background:#1a1916;color:#fff;cursor:pointer">전체</button>
+    <button class="rg-btn" data-g="제안사항" onclick="setReflectGroup('제안사항',this)"
+      style="font-size:12px;font-family:inherit;font-weight:500;padding:5px 14px;border-radius:20px;border:1px solid #c5d5f8;background:var(--surface);color:#2d5be3;cursor:pointer">제안사항</button>
+    <button class="rg-btn" data-g="와이즈버즈" onclick="setReflectGroup('와이즈버즈',this)"
+      style="font-size:12px;font-family:inherit;font-weight:500;padding:5px 14px;border-radius:20px;border:1px solid #f5d9a8;background:var(--surface);color:#a05c00;cursor:pointer">와버 확인</button>
+    <button class="rg-btn" data-g="아모레몰" onclick="setReflectGroup('아모레몰',this)"
+      style="font-size:12px;font-family:inherit;font-weight:500;padding:5px 14px;border-radius:20px;border:1px solid #b6e6cb;background:var(--surface);color:#1c7c4a;cursor:pointer">아모레몰 확인</button>
+  </div>
+  <div class="reflect-table">
+    <div class="rt-head" style="grid-template-columns:80px 1fr 1fr 130px">
+      <div>날짜</div>
+      <div>요청 내용</div>
+      <div>메모</div>
+      <div>상태</div>
+    </div>
+    <div id="reflect-rows"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════ TAB 4: 리뷰 검색 ════════════════════════ -->
+<section class="page" id="tab-search">
+  <div class="section-hd">
+    <h2>리뷰 검색</h2>
+    <p>전체 회의록에서 키워드로 검색합니다</p>
+  </div>
+  <div class="search-hero">
+    <input type="text" id="search-q" placeholder="검색어를 입력하세요 (예: 메타, KPI, 소재...)" onkeydown="if(event.key==='Enter')doSearch()" />
+    <button onclick="doSearch()">검색</button>
+  </div>
+  <div id="search-results"></div>
+</section>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════ SUPABASE CONFIG ════
+const SUPABASE_URL = 'https://wjftaxzhtpbnpnviujic.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_2IDy34eeznw-C4CsE_83QQ_bnYqsyIv';
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || 'return=representation',
+      ...options.headers
+    },
+    ...options
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+// ════ DATA STORE ════
+let ITEMS = [];
+let reflectStatusFilter = 'all';
+let reflectGroupFilter = 'all';
+
+async function loadItems() {
+  try {
+    const data = await sbFetch('review_items?order=id.asc');
+    ITEMS = data.map(r => ({
+      id: r.id,
+      ym: r.ym,
+      group: r.group_name,
+      title: r.title,
+      note: r.note || '',
+      status: r.status,
+      ref: r.ref || '',
+      channel: r.channel || '',
+    }));
+  } catch(e) {
+    console.error('데이터 로드 실패:', e);
+  }
+}
+
+async function persist() {
+  // Supabase에서는 각 변경시 직접 API 호출 — persist는 no-op
+}
+
+async function addItemToDb(item) {
+  const row = {
+    ym: item.ym,
+    group_name: item.group,
+    title: item.title,
+    note: item.note,
+    status: item.status || 'none',
+    ref: item.ref,
+    channel: item.channel,
+  };
+  const result = await sbFetch('review_items', {
+    method: 'POST',
+    body: JSON.stringify(row),
+    prefer: 'return=representation'
+  });
+  return result[0];
+}
+
+async function updateStatusInDb(id, status) {
+  await sbFetch(`review_items?id=eq.${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+    prefer: 'return=minimal'
+  });
+}
+
+async function deleteItemFromDb(id) {
+  await sbFetch(`review_items?id=eq.${id}`, {
+    method: 'DELETE',
+    prefer: 'return=minimal'
+  });
+}
+
+async function deleteMonthFromDb(ym) {
+  await sbFetch(`review_items?ym=eq.${ym}`, {
+    method: 'DELETE',
+    prefer: 'return=minimal'
+  });
+}
+
+// ════ YEAR SELECTS ════
+function getYears() {
+  const cur = new Date().getFullYear();
+  return [cur-1, cur, cur+1];
+}
+function populateYearSelects() {
+  const years = getYears();
+  const cur = String(new Date().getFullYear());
+  ['w-year','m-year','r-year'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = years.map(y => `<option value="${y}" ${String(y)===cur?'selected':''}>${y}년</option>`).join('');
+  });
+  // set w-month to current month
+  const cm = String(new Date().getMonth()+1).padStart(2,'0');
+  const wm = document.getElementById('w-month');
+  if (wm) wm.value = cm;
+}
+
+// ════ TAB SWITCHING ════
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'monthly') renderMonthly();
+  if (id === 'reflect') renderReflect();
+}
+
+// ════ WRITE ════
+let pendingItems = [];
+
+function resetPreview() {
+  pendingItems = [];
+  document.getElementById('preview-area').style.display = 'none';
+  document.getElementById('preview-btn').style.display = 'inline-block';
+  document.getElementById('confirm-btn').style.display = 'none';
+  document.getElementById('submit-hint').textContent = '미리보기 후 저장 확정하면 모든 탭에 반영됩니다';
+}
+
+function previewItems() {
+  const raw = document.getElementById('w-bulk').value;
+  const y = document.getElementById('w-year').value;
+  const m = document.getElementById('w-month').value;
+  const group = document.querySelector('input[name="w-group"]:checked')?.value || '제안사항';
+
+  // 줄 단위 분리, 빈 줄·기호 제거
+  const lines = raw.split('\n')
+    .map(l => l.replace(/^[-•*#\s]+/, '').trim())
+    .filter(l => l.length > 0);
+
+  if (!lines.length) { showToast('내용을 입력해주세요'); return; }
+
+  pendingItems = lines.map((title, i) => ({
+    id: null,
+    ym: `${y}-${m}`,
+    group: group,
+    channel: '',
+    title,
+    note: '',
+    ref: '',
+    status: 'none',
+  }));
+
+  const previewArea = document.getElementById('preview-area');
+  previewArea.style.display = 'block';
+  renderPreviewList();
+
+  document.getElementById('preview-btn').style.display = 'none';
+  document.getElementById('confirm-btn').style.display = 'inline-block';
+  document.getElementById('submit-hint').textContent = `${lines.length}개 항목 확인 후 저장 확정하세요`;
+}
+
+function renderPreviewList() {
+  document.getElementById('preview-list').innerHTML = pendingItems.map((item, i) => `
+    <div style="background:var(--bg);border:1px solid var(--rule);border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+      <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--ink3);flex-shrink:0;padding-top:9px">${String(i+1).padStart(2,'0')}</span>
+      <div style="flex:1;display:flex;flex-direction:column;gap:7px;">
+        <input class="form-input" style="background:#fff;font-weight:500;" placeholder="제목" value="${item.title.replace(/"/g,'&quot;')}"
+          oninput="pendingItems[${i}].title=this.value" />
+        <textarea class="form-ta" style="background:#fff;min-height:56px;font-size:12px;" placeholder="상세 내용 메모 (선택)"
+          oninput="pendingItems[${i}].note=this.value">${item.note||''}</textarea>
+      </div>
+      <button onclick="removePending(${i})" style="font-size:20px;color:var(--ink3);background:none;border:none;cursor:pointer;flex-shrink:0;line-height:1;padding-top:6px">×</button>
+    </div>`).join('');
+}
+
+function removePending(i) {
+  pendingItems.splice(i, 1);
+  if (pendingItems.length === 0) {
+    document.getElementById('preview-area').style.display = 'none';
+    document.getElementById('confirm-btn').style.display = 'none';
+    document.getElementById('submit-hint').textContent = '미리보기 후 저장 확정하면 모든 탭에 반영됩니다';
+    return;
+  }
+  renderPreviewList();
+  document.getElementById('submit-hint').textContent = `${pendingItems.length}개 항목 확인 후 저장 확정하세요`;
+}
+
+async function confirmSave() {
+  if (!pendingItems.length) return;
+  document.getElementById('confirm-btn').textContent = '저장 중...';
+  try {
+    for (const item of pendingItems) {
+      const saved = await addItemToDb(item);
+      ITEMS.push({ ...item, id: saved.id });
+    }
+    const cnt = pendingItems.length;
+    pendingItems = [];
+    document.getElementById('w-bulk').value = '';
+    document.getElementById('preview-area').style.display = 'none';
+    document.getElementById('confirm-btn').style.display = 'none';
+    document.getElementById('confirm-btn').textContent = '저장 확정';
+    document.getElementById('preview-btn').style.display = 'inline-block';
+    document.getElementById('submit-hint').textContent = '미리보기 후 저장 확정하면 모든 탭에 반영됩니다';
+    showToast(`${cnt}개 항목이 저장되었습니다 ✓`);
+  } catch(e) {
+    showToast('저장 실패: ' + e.message);
+    document.getElementById('confirm-btn').textContent = '저장 확정';
+  }
+}
+
+// ════ MONTHLY ════
+function getMonthlyFilter() {
+  const y = document.getElementById('m-year').value;
+  const m = document.getElementById('m-month').value;
+  return { y, m };
+}
+function renderMonthly() {
+  const { y, m } = getMonthlyFilter();
+
+  let yms = [...new Set(ITEMS.map(x=>x.ym))].sort().reverse();
+  if (m) yms = yms.filter(ym => ym === `${y}-${m}`);
+  else if (y) yms = yms.filter(ym => ym.startsWith(y));
+
+  const el = document.getElementById('monthly-content');
+  if (!yms.length) { el.innerHTML = '<div class="empty-msg">해당 기간의 리뷰 항목이 없습니다</div>'; return; }
+
+  el.innerHTML = yms.map(ym => {
+    const [yr, mo] = ym.split('-');
+    const ymItems = ITEMS.filter(x=>x.ym===ym);
+    const groupMeta = {
+      '제안사항':  { label:'제안사항',    color:'#2d5be3', bg:'#eef2fd' },
+      '와이즈버즈':{ label:'와버 확인',   color:'#a05c00', bg:'#fff3e0' },
+      '아모레몰':  { label:'아모레몰 확인', color:'#1c7c4a', bg:'#eaf5ef' },
+    };
+    const itemsHtml = ymItems.map(item => {
+      const gm = groupMeta[item.group];
+      const groupBadge = gm
+        ? `<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:${gm.bg};color:${gm.color};white-space:nowrap;flex-shrink:0">${gm.label}</span>`
+        : '';
+      return `
+      <div class="monthly-item" id="mitem-${item.id}">
+        <div class="monthly-item-dot"></div>
+        <div class="monthly-item-body" id="body-${item.id}">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            ${groupBadge}
+            <span class="monthly-item-title" style="margin-bottom:0">${item.title}</span>
+          </div>
+          ${item.note ? `<div class="monthly-item-note">${item.note}</div>` : ''}
+        </div>
+        <div class="monthly-item-status" style="display:flex;align-items:center;gap:8px">
+          <span class="sbadge ${item.status}">${statusLabel(item.status)}</span>
+          <button onclick="startEdit(${item.id})" title="수정"
+            style="font-size:13px;color:var(--ink3);background:none;border:none;cursor:pointer;line-height:1;padding:2px 4px;border-radius:4px;transition:color .15s"
+            onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--ink3)'">✎</button>
+          <button onclick="deleteItem(${item.id})" title="항목 삭제"
+            style="font-size:15px;color:var(--ink3);background:none;border:none;cursor:pointer;line-height:1;padding:2px 4px;border-radius:4px;transition:color .15s"
+            onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--ink3)'">×</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="monthly-block">
+      <div class="monthly-block-hd open" onclick="toggleBlock(this)">
+        <span class="ym">${yr}년 ${parseInt(mo)}월</span>
+        <span class="cnt" id="cnt-${ym}">${ymItems.length}건</span>
+        <div style="display:flex;gap:4px;margin-left:auto;margin-right:8px" onclick="event.stopPropagation()">
+          <button onclick="filterMonthGroup('${ym}','all',this)" class="mg-btn" data-ym="${ym}" data-group="all"
+            style="font-size:11px;font-family:inherit;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid #1a1916;background:#1a1916;color:#fff;cursor:pointer">
+            전체
+          </button>
+          <button onclick="filterMonthGroup('${ym}','제안사항',this)" class="mg-btn" data-ym="${ym}" data-group="제안사항"
+            style="font-size:11px;font-family:inherit;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid #c5d5f8;background:var(--surface);color:#2d5be3;cursor:pointer">
+            제안사항
+          </button>
+          <button onclick="filterMonthGroup('${ym}','와이즈버즈',this)" class="mg-btn" data-ym="${ym}" data-group="와이즈버즈"
+            style="font-size:11px;font-family:inherit;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid #f5d9a8;background:var(--surface);color:#a05c00;cursor:pointer">
+            와버 확인
+          </button>
+          <button onclick="filterMonthGroup('${ym}','아모레몰',this)" class="mg-btn" data-ym="${ym}" data-group="아모레몰"
+            style="font-size:11px;font-family:inherit;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid #b6e6cb;background:var(--surface);color:#1c7c4a;cursor:pointer">
+            아모레몰
+          </button>
+        </div>
+        <button onclick="deleteMonth(event,'${ym}')"
+          style="font-size:11px;font-family:inherit;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid var(--rule);background:var(--surface);color:var(--red);cursor:pointer;transition:all .15s;margin-right:8px"
+          onmouseover="this.style.background='var(--red-bg)'" onmouseout="this.style.background='var(--surface)'">
+          🗑 월 전체 삭제
+        </button>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="monthly-items open" id="items-${ym}">${itemsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+const GROUP_STYLE = {
+  all:      { bg:'#1a1916', color:'#fff',     border:'#1a1916' },
+  제안사항: { bg:'#eef2fd', color:'#2d5be3',  border:'#c5d5f8' },
+  와이즈버즈:{ bg:'#fff3e0', color:'#a05c00', border:'#f5d9a8' },
+  아모레몰: { bg:'#eaf5ef', color:'#1c7c4a',  border:'#b6e6cb' },
+};
+
+function filterMonthGroup(ym, group, btn) {
+  document.querySelectorAll(`.mg-btn[data-ym="${ym}"]`).forEach(b => {
+    b.style.background = 'var(--surface)';
+    b.style.color = b.dataset.group === '제안사항' ? '#2d5be3'
+                  : b.dataset.group === '와이즈버즈' ? '#a05c00'
+                  : b.dataset.group === '아모레몰' ? '#1c7c4a' : 'var(--ink)';
+    b.style.borderColor = b.dataset.group === '제안사항' ? '#c5d5f8'
+                        : b.dataset.group === '와이즈버즈' ? '#f5d9a8'
+                        : b.dataset.group === '아모레몰' ? '#b6e6cb' : 'var(--rule)';
+    b.style.fontWeight = '500';
+  });
+  const gs = GROUP_STYLE[group] || GROUP_STYLE.all;
+  btn.style.background = gs.bg;
+  btn.style.color = gs.color;
+  btn.style.borderColor = gs.border;
+  btn.style.fontWeight = '700';
+
+  const container = document.getElementById(`items-${ym}`);
+  if (!container) return;
+  const rows = container.querySelectorAll('.monthly-item');
+  let visible = 0;
+  rows.forEach(row => {
+    const id = parseInt(row.id.replace('mitem-',''));
+    const item = ITEMS.find(x => x.id === id);
+    if (!item) return;
+    const show = group === 'all' || item.group === group;
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  const cntEl = document.getElementById(`cnt-${ym}`);
+  if (cntEl) cntEl.textContent = visible + '건';
+}
+
+function startEdit(id) {
+  const item = ITEMS.find(x => x.id === id);
+  if (!item) return;
+  const body = document.getElementById(`body-${id}`);
+  if (!body) return;
+  body.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:7px;">
+      <input id="edit-title-${id}" class="form-input" style="font-size:13px;font-weight:500;" value="${item.title.replace(/"/g,'&quot;')}" />
+      <textarea id="edit-note-${id}" class="form-ta" style="min-height:52px;font-size:12px;">${item.note||''}</textarea>
+      <div style="display:flex;gap:6px;">
+        <button onclick="saveEdit(${id})"
+          style="font-family:inherit;font-size:12px;font-weight:700;padding:5px 14px;border-radius:6px;border:none;background:var(--ink);color:#fff;cursor:pointer">저장</button>
+        <button onclick="renderMonthly()"
+          style="font-family:inherit;font-size:12px;padding:5px 14px;border-radius:6px;border:1px solid var(--rule);background:#fff;cursor:pointer">취소</button>
+      </div>
+    </div>`;
+}
+
+async function saveEdit(id) {
+  const title = document.getElementById(`edit-title-${id}`).value.trim();
+  const note = document.getElementById(`edit-note-${id}`).value.trim();
+  if (!title) { showToast('제목을 입력해주세요'); return; }
+  const item = ITEMS.find(x => x.id === id);
+  if (!item) return;
+  item.title = title;
+  item.note = note;
+  await sbFetch(`review_items?id=eq.${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ title, note }),
+    prefer: 'return=minimal'
+  });
+  showToast('수정되었습니다 ✓');
+  renderMonthly();
+  renderReflect();
+}
+
+async function deleteItem(id) {
+  if (!confirm('이 항목을 삭제할까요?')) return;
+  await deleteItemFromDb(id);
+  const idx = ITEMS.findIndex(x => x.id === id);
+  if (idx !== -1) ITEMS.splice(idx, 1);
+  renderMonthly();
+  renderReflect();
+}
+
+async function deleteMonth(e, ym) {
+  e.stopPropagation();
+  const [yr, mo] = ym.split('-');
+  if (!confirm(`${yr}년 ${parseInt(mo)}월 항목 전체를 삭제할까요?`)) return;
+  const before = ITEMS.length;
+  await deleteMonthFromDb(ym);
+  ITEMS.splice(0, ITEMS.length, ...ITEMS.filter(x => x.ym !== ym));
+  renderMonthly();
+  renderReflect();
+  showToast(`${before - ITEMS.length}개 항목이 삭제되었습니다`);
+}
+function toggleBlock(hd) {
+  hd.classList.toggle('open');
+  hd.nextElementSibling.classList.toggle('open');
+}
+
+// ════ REFLECT ════
+function setReflectGroup(g, btn) {
+  reflectGroupFilter = g;
+  document.querySelectorAll('.rg-btn').forEach(b => {
+    const bg = b.dataset.g;
+    b.style.fontWeight = '500';
+    b.style.background = 'var(--surface)';
+    b.style.color = bg === '제안사항' ? '#2d5be3' : bg === '와이즈버즈' ? '#a05c00' : bg === '아모레몰' ? '#1c7c4a' : 'var(--ink)';
+    b.style.borderColor = bg === '제안사항' ? '#c5d5f8' : bg === '와이즈버즈' ? '#f5d9a8' : bg === '아모레몰' ? '#b6e6cb' : 'var(--rule)';
+  });
+  const gs = GROUP_STYLE[g] || GROUP_STYLE.all;
+  btn.style.background = gs.bg;
+  btn.style.color = gs.color;
+  btn.style.borderColor = gs.border;
+  btn.style.fontWeight = '700';
+  renderReflect();
+}
+
+function renderReflect() {
+  const y = document.getElementById('r-year').value;
+  const m = document.getElementById('r-month').value;
+
+  let data = ITEMS;
+  if (m) data = data.filter(x => x.ym === `${y}-${m}`);
+  else if (y) data = data.filter(x => x.ym.startsWith(y));
+  if (reflectStatusFilter !== 'all') data = data.filter(x => x.status === reflectStatusFilter);
+  if (reflectGroupFilter !== 'all') data = data.filter(x => x.group === reflectGroupFilter);
+
+  const all = m ? ITEMS.filter(x=>x.ym===`${y}-${m}`) : ITEMS.filter(x=>x.ym.startsWith(y));
+  const done     = all.filter(x=>x.status==='done').length;
+  const prog     = all.filter(x=>x.status==='progress').length;
+  const checking = all.filter(x=>x.status==='checking').length;
+  const pending  = all.filter(x=>x.status==='pending').length;
+  const none     = all.filter(x=>x.status==='none').length;
+
+  document.getElementById('reflect-metrics').innerHTML = [
+    { l:'전체',    v: all.length+'건', cls:'' },
+    { l:'-',       v: none+'건',       cls:'' },
+    { l:'확인 중', v: checking+'건',   cls:'amber' },
+    { l:'진행 중', v: prog+'건',       cls:'amber' },
+    { l:'완료',    v: done+'건',       cls:'green' },
+    { l:'미진행',  v: pending+'건',    cls:'red' },
+  ].map(m => `<div class="metric"><div class="metric-label">${m.l}</div><div class="metric-val ${m.cls}">${m.v}</div></div>`).join('');
+
+  document.getElementById('reflect-metrics').style.gridTemplateColumns = 'repeat(6,1fr)';
+
+  const rows = document.getElementById('reflect-rows');
+  if (!data.length) { rows.innerHTML = '<div class="empty-msg">해당 조건의 항목이 없습니다</div>'; return; }
+
+  const groupMeta = {
+    '제안사항':  { label:'제안사항',     color:'#2d5be3', bg:'#eef2fd' },
+    '와이즈버즈':{ label:'와버 확인',    color:'#a05c00', bg:'#fff3e0' },
+    '아모레몰':  { label:'아모레몰 확인', color:'#1c7c4a', bg:'#eaf5ef' },
+  };
+
+  rows.innerHTML = data.map(item => {
+    const [yr,mo] = item.ym.split('-');
+    const sClass = { checking:'checking', progress:'progress', done:'done', pending:'pending', none:'none' }[item.status] || 'none';
+    const gm = groupMeta[item.group];
+    const groupBadge = gm ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:${gm.bg};color:${gm.color};white-space:nowrap">${gm.label}</span>` : '';
+    return `<div class="rt-row" style="grid-template-columns:80px 1fr 1fr 130px;align-items:start;padding:14px 16px;">
+      <div class="rt-cell ym" style="padding-top:4px">${yr}.${mo}</div>
+      <div class="rt-cell title">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">${groupBadge}<span>${item.title}</span></div>
+      </div>
+      <div class="rt-cell note" style="font-size:12px;color:var(--ink2);line-height:1.55;white-space:pre-wrap;padding-right:12px">${item.note || '—'}</div>
+      <div class="rt-cell">
+        <select class="status-sel s-${sClass}" onchange="changeStatus(${item.id},this.value)">
+          <option value="none"     ${item.status==='none'    ?'selected':''}>-</option>
+          <option value="checking" ${item.status==='checking'?'selected':''}>확인 중</option>
+          <option value="progress" ${item.status==='progress'?'selected':''}>진행 중</option>
+          <option value="done"     ${item.status==='done'    ?'selected':''}>완료</option>
+          <option value="pending"  ${item.status==='pending' ?'selected':''}>미진행</option>
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+}
+function setReflectFilter(s, btn) {
+  reflectStatusFilter = s;
+  document.querySelectorAll('.rf-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderReflect();
+}
+async function changeStatus(id, val) {
+  const item = ITEMS.find(x=>x.id===id);
+  if (item) {
+    item.status = val;
+    await updateStatusInDb(id, val);
+    renderReflect();
+  }
+}
+
+// ════ SEARCH ════
+function doSearch() {
+  const q = document.getElementById('search-q').value.trim();
+  const el = document.getElementById('search-results');
+  if (!q) { el.innerHTML = '<div class="search-empty">검색어를 입력해주세요</div>'; return; }
+  const ql = q.toLowerCase();
+  const hits = ITEMS.filter(x =>
+    x.title.toLowerCase().includes(ql) ||
+    x.note.toLowerCase().includes(ql) ||
+    x.channel.toLowerCase().includes(ql) ||
+    x.group.toLowerCase().includes(ql)
+  );
+  if (!hits.length) { el.innerHTML = `<div class="search-empty">"${q}"에 대한 검색 결과가 없습니다</div>`; return; }
+
+  function hl(str) {
+    if (!str) return '';
+    return str.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark>$1</mark>');
+  }
+  el.innerHTML = hits.map(item => {
+    const [yr,mo] = item.ym.split('-');
+    const gm = { '제안사항':{ label:'제안사항', color:'#2d5be3', bg:'#eef2fd' }, '와이즈버즈':{ label:'와버 확인', color:'#a05c00', bg:'#fff3e0' }, '아모레몰':{ label:'아모레몰 확인', color:'#1c7c4a', bg:'#eaf5ef' } }[item.group];
+    const groupBadge = gm ? `<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:${gm.bg};color:${gm.color}">${gm.label}</span>` : '';
+    return `<div class="search-hit">
+      <span class="search-hit-ym">${yr}년 ${parseInt(mo)}월</span>
+      <div class="search-hit-body">
+        <div class="search-hit-title">${hl(item.title)}</div>
+        ${item.note ? `<div class="search-hit-note">${hl(item.note)}</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;margin-left:12px">
+        ${groupBadge}
+        <span class="sbadge ${item.status}" style="font-size:11px">${statusLabel(item.status)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════ HELPERS ════
+function statusLabel(s) { return { done:'완료', progress:'진행 중', checking:'확인 중', pending:'미진행', none:'-' }[s] || s; }
+
+function clearMonthFilter(prefix) {
+  document.getElementById(prefix+'-month').value = '';
+  if (prefix === 'm') renderMonthly();
+  if (prefix === 'r') renderReflect();
+}
+
+function updateBadge() {
+  document.getElementById('total-badge').textContent = ITEMS.length + '건';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function saveFile() {
+  const serialized = JSON.stringify(ITEMS, null, 2);
+  const scripts = document.querySelectorAll('script');
+  const lastScript = scripts[scripts.length-1];
+  const updated = lastScript.textContent.replace(
+    /let ITEMS = JSON\.parse\(localStorage\.getItem\('review_items'\) \|\| '\[\]'\);/,
+    `let ITEMS = ${serialized};`
+  ).replace(
+    /let nextId = parseInt\(localStorage\.getItem\('review_next_id'\) \|\| '1'\);/,
+    `let nextId = ${nextId};`
+  ).replace(
+    /if \(ITEMS\.length === 0\) \{[\s\S]*?persist\(\);\s*\}/,
+    ''
+  );
+  const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML.replace(lastScript.textContent, updated);
+  const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '월간리뷰_대시보드.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('파일이 다운로드되었습니다 💾');
+}
+
+// ════ INIT ════
+async function init() {
+  populateYearSelects();
+  await loadItems();
+  renderMonthly();
+  renderReflect();
+}
+init();
+</script>
+</body>
+</html>

@@ -1349,7 +1349,7 @@ function saveFile() {
 }
 
 // ════ LINKS TAB ════
-let LINKS = JSON.parse(localStorage.getItem('review_links') || '[]');
+let LINKS = [];
 let editingLinkIdx = null;
 
 const MONTH_COLORS = [
@@ -1357,8 +1357,14 @@ const MONTH_COLORS = [
   '#8f2d5e','#5c7c1a','#2d4a8f','#8f6a1a','#1a7c7c','#8f2d2d'
 ];
 
-function persistLinks() {
-  localStorage.setItem('review_links', JSON.stringify(LINKS));
+async function loadLinks() {
+  try {
+    const data = await sbFetch('review_links?order=year.desc,month.asc');
+    LINKS = data;
+  } catch(e) {
+    console.error('링크 로드 실패:', e);
+    LINKS = [];
+  }
 }
 
 function renderLinks() {
@@ -1375,11 +1381,9 @@ function renderLinks() {
       <a href="${l.url}" target="_blank" style="text-decoration:none;display:block;">
         <div style="background:${color};border-radius:16px;aspect-ratio:4/5;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:opacity .15s;position:relative;overflow:hidden;"
           onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-          <!-- 노트 선 장식 -->
           <div style="position:absolute;top:0;left:0;right:0;bottom:0;opacity:.15;">
             ${[1,2,3,4,5].map(n=>`<div style="position:absolute;top:${15+n*14}%;left:12%;right:12%;height:1px;background:#fff"></div>`).join('')}
           </div>
-          <!-- 노트 상단 링 -->
           <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:30px;height:8px;background:rgba(255,255,255,0.3);border-radius:4px;"></div>
           <div style="color:#fff;font-size:28px;font-weight:700;font-family:'DM Mono',monospace;margin-top:10px">${mo}월</div>
           <div style="color:rgba(255,255,255,0.7);font-size:12px;margin-top:4px">${l.year}</div>
@@ -1413,27 +1417,40 @@ function editLink(i) {
   document.getElementById('link-modal').style.display = 'flex';
 }
 
-function saveLinkCard() {
+async function saveLinkCard() {
   const year = document.getElementById('link-year').value;
   const month = document.getElementById('link-month').value;
   const url = document.getElementById('link-url').value.trim();
   if (!url) { showToast('URL을 입력해주세요'); return; }
-  if (editingLinkIdx !== null) {
-    LINKS[editingLinkIdx] = { year, month, url };
-  } else {
-    LINKS.push({ year, month, url });
-    LINKS.sort((a,b) => (a.year+a.month) > (b.year+b.month) ? -1 : 1);
+  try {
+    if (editingLinkIdx !== null) {
+      const id = LINKS[editingLinkIdx].id;
+      await sbFetch(`review_links?id=eq.${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ year, month, url }),
+        prefer: 'return=minimal'
+      });
+    } else {
+      await sbFetch('review_links', {
+        method: 'POST',
+        body: JSON.stringify({ year, month, url }),
+        prefer: 'return=representation'
+      });
+    }
+    await loadLinks();
+    closeLinkModal();
+    renderLinks();
+    showToast('저장되었습니다 ✓');
+  } catch(e) {
+    showToast('저장 실패: ' + e.message);
   }
-  persistLinks();
-  closeLinkModal();
-  renderLinks();
-  showToast('저장되었습니다 ✓');
 }
 
-function deleteLink(i) {
+async function deleteLink(i) {
   if (!confirm('이 링크를 삭제할까요?')) return;
-  LINKS.splice(i, 1);
-  persistLinks();
+  const id = LINKS[i].id;
+  await sbFetch(`review_links?id=eq.${id}`, { method:'DELETE', prefer:'return=minimal' });
+  await loadLinks();
   renderLinks();
 }
 
@@ -1603,6 +1620,7 @@ async function init() {
   const ly = document.getElementById('link-year');
   if (ly) getYears().forEach(y => { const o = document.createElement('option'); o.value=y; o.textContent=y+'년'; ly.appendChild(o); });
   await loadItems();
+  await loadLinks();
   await loadHistory();
   // 월 버튼 생성
   const mBtns = document.getElementById('h-month-btns');

@@ -1602,11 +1602,6 @@ async function init() {
   // link year select
   const ly = document.getElementById('link-year');
   if (ly) getYears().forEach(y => { const o = document.createElement('option'); o.value=y; o.textContent=y+'년'; ly.appendChild(o); });
-  // history year selects
-  ['h-year','h-input-year'].forEach(sid => {
-    const el = document.getElementById(sid);
-    if (el) getYears().forEach(y => { const o = document.createElement('option'); o.value=y; o.textContent=sid==='h-year'?y+'년':y+'년'; if(String(y)===String(new Date().getFullYear())) o.selected=true; el.appendChild(o); });
-  });
   await loadItems();
   await loadHistory();
   // 월 버튼 생성
@@ -1634,12 +1629,12 @@ async function init() {
       mediaBtns.appendChild(btn);
     });
   }
+  // 연도 버튼 생성
+  const yBtns = document.getElementById('h-year-btns');
   if (yBtns) {
     getYears().forEach(y => {
       const btn = document.createElement('button');
       btn.className = 'h-filter-btn';
-      btn.dataset.type = 'year';
-      btn.dataset.val = String(y);
       btn.textContent = y + '년';
       btn.style.cssText = 'font-family:inherit;font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--rule);background:var(--surface);color:var(--ink2);cursor:pointer;';
       btn.onclick = () => toggleHistoryFilter('year', String(y), btn);

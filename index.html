@@ -1479,7 +1479,7 @@ function renderHistory() {
   if (y) data = data.filter(x => x.year === y);
   if (m) data = data.filter(x => {
     if (!x.date) return false;
-    const match = String(x.date).match(/^(\d+)\//);
+    const match = String(x.date).trim().match(/^(\d+)\//);
     if (!match) return false;
     return match[1].padStart(2,'0') === m;
   });

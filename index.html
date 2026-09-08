@@ -448,6 +448,9 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
   <button class="tab-btn" data-tab="links" onclick="switchTab('links',this)">
     <span class="tab-icon">🔗</span> 리뷰 바로가기
   </button>
+  <button class="tab-btn" data-tab="history" onclick="switchTab('history',this)">
+    <span class="tab-icon">📁</span> 작업 히스토리
+  </button>
 </nav>
 
 <!-- ════════════════════════ TAB 5: 리뷰 바로가기 ════════════════════════ -->
@@ -657,7 +660,129 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
 </section>
 
 <!-- TOAST -->
-<div class="toast" id="toast"></div>
+<!-- ════════════════════════ TAB 6: 작업 히스토리 ════════════════════════ -->
+<section class="page" id="tab-history">
+  <div class="section-hd">
+    <h2>작업 히스토리</h2>
+    <p>일별 매체 작업 내역을 기록하고 관리합니다</p>
+  </div>
+
+  <!-- 필터바 -->
+  <div class="month-bar" style="flex-wrap:wrap;gap:10px;">
+    <label>연도</label>
+    <select id="h-year" onchange="renderHistory()"></select>
+    <label>월</label>
+    <select id="h-month" onchange="renderHistory()">
+      <option value="">전체</option>
+      <option value="01">1월</option><option value="02">2월</option>
+      <option value="03">3월</option><option value="04">4월</option>
+      <option value="05">5월</option><option value="06">6월</option>
+      <option value="07">7월</option><option value="08">8월</option>
+      <option value="09">9월</option><option value="10">10월</option>
+      <option value="11">11월</option><option value="12">12월</option>
+    </select>
+    <label>매체</label>
+    <select id="h-media" onchange="renderHistory()">
+      <option value="">전체</option>
+      <option>메타</option><option>구글</option><option>카카오</option>
+      <option>틱톡</option><option>지피티</option><option>ASA</option>
+      <option>토스</option><option>Pmax</option><option>ACe</option>
+      <option>VVC</option>
+    </select>
+    <button class="month-clear" onclick="clearHistoryFilter()">전체 보기</button>
+    <button onclick="openHistoryModal(null)" style="margin-left:auto;font-family:inherit;font-size:12px;font-weight:500;padding:6px 16px;border-radius:8px;background:var(--ink);color:#fff;border:none;cursor:pointer">+ 항목 추가</button>
+  </div>
+
+  <!-- 테이블 -->
+  <div style="background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-lg);overflow:hidden;">
+    <div style="display:grid;grid-template-columns:90px 80px 80px 80px 90px 100px 1fr 1fr 60px;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--rule);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);">
+      <div>일시</div>
+      <div>매체1</div>
+      <div>매체2</div>
+      <div>매체3</div>
+      <div>브랜드</div>
+      <div>변경내용</div>
+      <div>상세내용</div>
+      <div>캠페인</div>
+      <div></div>
+    </div>
+    <div id="history-rows"></div>
+  </div>
+
+  <!-- 히스토리 입력 모달 -->
+  <div id="history-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:999;align-items:center;justify-content:center;overflow-y:auto;">
+    <div style="background:#fff;border-radius:16px;padding:28px;width:520px;box-shadow:0 8px 40px rgba(0,0,0,0.15);margin:20px auto;">
+      <div style="font-size:16px;font-weight:700;margin-bottom:16px" id="history-modal-title">항목 추가</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label class="form-label">연도</label>
+          <select id="h-input-year" class="form-select" style="margin-top:4px"></select>
+        </div>
+        <div>
+          <label class="form-label">월/일</label>
+          <input id="h-input-date" class="form-input" placeholder="예: 7/6(월)" style="margin-top:4px"/>
+        </div>
+        <div>
+          <label class="form-label">매체1</label>
+          <select id="h-input-media1" class="form-select" style="margin-top:4px">
+            <option value="">-</option>
+            <option>메타</option><option>구글</option><option>카카오</option>
+            <option>틱톡</option><option>지피티</option><option>ASA</option>
+            <option>토스</option><option>Pmax</option><option>ACe</option><option>VVC</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">매체2</label>
+          <select id="h-input-media2" class="form-select" style="margin-top:4px">
+            <option value="">-</option>
+            <option>메타</option><option>구글</option><option>카카오</option>
+            <option>틱톡</option><option>지피티</option><option>ASA</option>
+            <option>토스</option><option>Pmax</option><option>ACe</option><option>VVC</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">매체3</label>
+          <select id="h-input-media3" class="form-select" style="margin-top:4px">
+            <option value="">-</option>
+            <option>메타</option><option>구글</option><option>카카오</option>
+            <option>틱톡</option><option>지피티</option><option>ASA</option>
+            <option>토스</option><option>Pmax</option><option>ACe</option><option>VVC</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">브랜드</label>
+          <input id="h-input-brand" class="form-input" placeholder="예: 설화수, 6대 브랜드" style="margin-top:4px"/>
+        </div>
+        <div>
+          <label class="form-label">캠페인</label>
+          <input id="h-input-campaign" class="form-input" placeholder="예: 첫구매, 상시소재" style="margin-top:4px"/>
+        </div>
+        <div>
+          <label class="form-label">변경내용</label>
+          <select id="h-input-change" class="form-select" style="margin-top:4px">
+            <option value="">선택</option>
+            <option>소재 추가</option><option>소재 교체</option><option>On/Off</option>
+            <option>예산증액</option><option>예산감액</option><option>세팅 변경</option>
+            <option>타겟 변경</option><option>라이브</option><option>유지</option>
+            <option>리포트 변경</option><option>서비스</option><option>기타</option>
+          </select>
+        </div>
+        <div style="grid-column:1/-1">
+          <label class="form-label">상세내용 <span style="color:var(--red)">*</span></label>
+          <textarea id="h-input-detail" class="form-ta" style="margin-top:4px;min-height:80px" placeholder="작업 상세 내용을 입력하세요"></textarea>
+        </div>
+        <div style="grid-column:1/-1">
+          <label class="form-label">특이사항</label>
+          <input id="h-input-note" class="form-input" placeholder="특이사항이 있으면 입력하세요" style="margin-top:4px"/>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:18px">
+        <button onclick="closeHistoryModal()" style="flex:1;font-family:inherit;font-size:13px;padding:9px;border-radius:8px;border:1px solid var(--rule);background:#fff;cursor:pointer">취소</button>
+        <button onclick="saveHistoryItem()" style="flex:1;font-family:inherit;font-size:13px;font-weight:700;padding:9px;border-radius:8px;border:none;background:var(--ink);color:#fff;cursor:pointer">저장</button>
+      </div>
+    </div>
+  </div>
+</section>
 
 <script>
 // ════ SUPABASE CONFIG ════
@@ -776,6 +901,7 @@ function switchTab(id, btn) {
   if (id === 'monthly') renderMonthly();
   if (id === 'reflect') renderReflect();
   if (id === 'links') renderLinks();
+  if (id === 'history') renderHistory();
 }
 
 // ════ WRITE ════
@@ -1323,13 +1449,143 @@ function closeLinkModal() {
   document.getElementById('link-modal').style.display = 'none';
 }
 
+// ════ HISTORY TAB ════
+let HISTORY = [];
+let editingHistoryId = null;
+const MEDIA_COLORS = {
+  '메타':'#1977f3','구글':'#4a8cf7','카카오':'#f7c600','틱톡':'#000','지피티':'#10a37f',
+  'ASA':'#0070c9','토스':'#0064ff','Pmax':'#4a8cf7','ACe':'#34a853','VVC':'#ff4500'
+};
+
+async function loadHistory() {
+  try {
+    const data = await sbFetch('work_history?order=id.desc');
+    HISTORY = data;
+  } catch(e) {
+    console.error('히스토리 로드 실패:', e);
+    HISTORY = [];
+  }
+}
+
+function renderHistory() {
+  const y = document.getElementById('h-year')?.value || '';
+  const m = document.getElementById('h-month')?.value || '';
+  const media = document.getElementById('h-media')?.value || '';
+
+  let data = HISTORY;
+  if (y) data = data.filter(x => x.year === y);
+  if (m) data = data.filter(x => x.month === m);
+  if (media) data = data.filter(x => [x.media1, x.media2, x.media3].includes(media));
+
+  const rows = document.getElementById('history-rows');
+  if (!rows) return;
+  if (!data.length) { rows.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3);font-size:13px">히스토리가 없습니다. 항목을 추가해보세요!</div>'; return; }
+
+  rows.innerHTML = data.map(item => {
+    const mediaBadge = (m) => m ? `<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${MEDIA_COLORS[m]||'#888'}22;color:${MEDIA_COLORS[m]||'#888'};font-weight:500">${m}</span>` : '<span style="color:var(--ink3);font-size:12px">-</span>';
+    return `<div style="display:grid;grid-template-columns:90px 80px 80px 80px 90px 100px 1fr 1fr 60px;padding:12px 16px;border-top:1px solid var(--rule);align-items:start;transition:background .1s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+      <div style="font-size:12px;color:var(--ink2)">${item.date||''}</div>
+      <div>${mediaBadge(item.media1)}</div>
+      <div>${mediaBadge(item.media2)}</div>
+      <div>${mediaBadge(item.media3)}</div>
+      <div style="font-size:12px;font-weight:500">${item.brand||'-'}</div>
+      <div style="font-size:11px;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--ink2);display:inline-block">${item.change_type||'-'}</div>
+      <div style="font-size:12px;color:var(--ink);line-height:1.5">${item.detail||'-'}</div>
+      <div style="font-size:12px;color:var(--ink2)">${item.campaign||'-'}</div>
+      <div style="display:flex;gap:4px;">
+        <button onclick="openHistoryModal(${item.id})" style="font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--rule);background:#fff;cursor:pointer;color:var(--ink2)">수정</button>
+        <button onclick="deleteHistoryItem(${item.id})" style="font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--rule);background:#fff;cursor:pointer;color:var(--red)">삭제</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function clearHistoryFilter() {
+  document.getElementById('h-month').value = '';
+  document.getElementById('h-media').value = '';
+  renderHistory();
+}
+
+function openHistoryModal(id) {
+  editingHistoryId = id;
+  document.getElementById('history-modal-title').textContent = id ? '항목 수정' : '항목 추가';
+  if (id) {
+    const item = HISTORY.find(x => x.id === id);
+    if (!item) return;
+    document.getElementById('h-input-year').value = item.year || '';
+    document.getElementById('h-input-date').value = item.date || '';
+    document.getElementById('h-input-media1').value = item.media1 || '';
+    document.getElementById('h-input-media2').value = item.media2 || '';
+    document.getElementById('h-input-media3').value = item.media3 || '';
+    document.getElementById('h-input-brand').value = item.brand || '';
+    document.getElementById('h-input-campaign').value = item.campaign || '';
+    document.getElementById('h-input-change').value = item.change_type || '';
+    document.getElementById('h-input-detail').value = item.detail || '';
+    document.getElementById('h-input-note').value = item.note || '';
+  } else {
+    ['h-input-date','h-input-brand','h-input-campaign','h-input-detail','h-input-note'].forEach(id => document.getElementById(id).value = '');
+    ['h-input-media1','h-input-media2','h-input-media3','h-input-change'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('h-input-year').value = String(new Date().getFullYear());
+  }
+  document.getElementById('history-modal').style.display = 'flex';
+}
+
+function closeHistoryModal() {
+  document.getElementById('history-modal').style.display = 'none';
+}
+
+async function saveHistoryItem() {
+  const detail = document.getElementById('h-input-detail').value.trim();
+  if (!detail) { showToast('상세내용을 입력해주세요'); return; }
+  const row = {
+    year: document.getElementById('h-input-year').value,
+    date: document.getElementById('h-input-date').value.trim(),
+    media1: document.getElementById('h-input-media1').value,
+    media2: document.getElementById('h-input-media2').value,
+    media3: document.getElementById('h-input-media3').value,
+    brand: document.getElementById('h-input-brand').value.trim(),
+    campaign: document.getElementById('h-input-campaign').value.trim(),
+    change_type: document.getElementById('h-input-change').value,
+    detail,
+    note: document.getElementById('h-input-note').value.trim(),
+  };
+  try {
+    if (editingHistoryId) {
+      await sbFetch(`work_history?id=eq.${editingHistoryId}`, { method:'PATCH', body:JSON.stringify(row), prefer:'return=minimal' });
+      const idx = HISTORY.findIndex(x => x.id === editingHistoryId);
+      if (idx !== -1) HISTORY[idx] = { ...HISTORY[idx], ...row };
+    } else {
+      const result = await sbFetch('work_history', { method:'POST', body:JSON.stringify(row), prefer:'return=representation' });
+      HISTORY.unshift(result[0]);
+    }
+    closeHistoryModal();
+    renderHistory();
+    showToast('저장되었습니다 ✓');
+  } catch(e) {
+    showToast('저장 실패: ' + e.message);
+  }
+}
+
+async function deleteHistoryItem(id) {
+  if (!confirm('이 항목을 삭제할까요?')) return;
+  await sbFetch(`work_history?id=eq.${id}`, { method:'DELETE', prefer:'return=minimal' });
+  HISTORY.splice(HISTORY.findIndex(x=>x.id===id), 1);
+  renderHistory();
+}
+
 // ════ INIT ════
 async function init() {
   populateYearSelects();
   // link year select
   const ly = document.getElementById('link-year');
   if (ly) getYears().forEach(y => { const o = document.createElement('option'); o.value=y; o.textContent=y+'년'; ly.appendChild(o); });
+  // history year selects
+  ['h-year','h-input-year'].forEach(sid => {
+    const el = document.getElementById(sid);
+    if (el) getYears().forEach(y => { const o = document.createElement('option'); o.value=y; o.textContent=sid==='h-year'?y+'년':y+'년'; if(String(y)===String(new Date().getFullYear())) o.selected=true; el.appendChild(o); });
+  });
   await loadItems();
+  await loadHistory();
   renderMonthly();
   renderReflect();
   renderLinks();

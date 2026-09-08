@@ -675,21 +675,11 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       <span style="font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase;width:36px;flex-shrink:0">월</span>
-      <div style="display:flex;gap:6px;flex-wrap:wrap" id="h-month-btns">
-        ${['1','2','3','4','5','6','7','8','9','10','11','12'].map(m=>`
-          <button class="h-filter-btn" data-type="month" data-val="${m.padStart(2,'0')}" onclick="toggleHistoryFilter('month','${m.padStart(2,'0')}',this)"
-            style="font-family:inherit;font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--rule);background:var(--surface);color:var(--ink2);cursor:pointer;">${m}월</button>
-        `).join('')}
-      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="h-month-btns"></div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       <span style="font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase;width:36px;flex-shrink:0">매체</span>
-      <div style="display:flex;gap:6px;flex-wrap:wrap" id="h-media-btns">
-        ${['메타','구글','카카오','틱톡','지피티','ASA','토스','Pmax','ACe','VVC','디멘드젠','쿠키오븐'].map(v=>`
-          <button class="h-filter-btn" data-type="media" data-val="${v}" onclick="toggleHistoryFilter('media','${v}',this)"
-            style="font-family:inherit;font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--rule);background:var(--surface);color:var(--ink2);cursor:pointer;">${v}</button>
-        `).join('')}
-      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="h-media-btns"></div>
     </div>
     <div>
       <button onclick="clearHistoryFilter()" style="font-family:inherit;font-size:12px;padding:4px 14px;border-radius:20px;border:1px solid var(--rule);background:var(--surface2);color:var(--ink2);cursor:pointer;">전체 보기</button>
@@ -1619,8 +1609,31 @@ async function init() {
   });
   await loadItems();
   await loadHistory();
-  // 연도 버튼 생성
-  const yBtns = document.getElementById('h-year-btns');
+  // 월 버튼 생성
+  const mBtns = document.getElementById('h-month-btns');
+  if (mBtns) {
+    ['1','2','3','4','5','6','7','8','9','10','11','12'].forEach(m => {
+      const val = m.padStart(2,'0');
+      const btn = document.createElement('button');
+      btn.className = 'h-filter-btn';
+      btn.textContent = m + '월';
+      btn.style.cssText = 'font-family:inherit;font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--rule);background:var(--surface);color:var(--ink2);cursor:pointer;';
+      btn.onclick = () => toggleHistoryFilter('month', val, btn);
+      mBtns.appendChild(btn);
+    });
+  }
+  // 매체 버튼 생성
+  const mediaBtns = document.getElementById('h-media-btns');
+  if (mediaBtns) {
+    ['메타','구글','카카오','틱톡','지피티','ASA','토스','Pmax','ACe','VVC','디멘드젠','쿠키오븐'].forEach(v => {
+      const btn = document.createElement('button');
+      btn.className = 'h-filter-btn';
+      btn.textContent = v;
+      btn.style.cssText = 'font-family:inherit;font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--rule);background:var(--surface);color:var(--ink2);cursor:pointer;';
+      btn.onclick = () => toggleHistoryFilter('media', v, btn);
+      mediaBtns.appendChild(btn);
+    });
+  }
   if (yBtns) {
     getYears().forEach(y => {
       const btn = document.createElement('button');

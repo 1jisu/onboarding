@@ -118,7 +118,7 @@ body {
 .tab-icon { font-size: 15px; }
 
 /* ── PAGE WRAPPER ── */
-.page { display: none; padding: 28px; max-width: 1100px; margin: 0 auto; }
+.page { display: none; padding: 28px 48px; max-width: 1400px; margin: 0 auto; }
 .page.active { display: block; }
 
 /* ── SECTION HEADER ── */
@@ -694,16 +694,15 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
 
   <!-- 테이블 -->
   <div style="background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-lg);overflow:hidden;">
-    <div style="display:grid;grid-template-columns:90px 80px 80px 80px 90px 100px 1fr 1fr 60px;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--rule);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);">
+    <div style="display:grid;grid-template-columns:80px 70px 70px 70px 100px 120px 1fr 1fr;padding:10px 24px;background:var(--surface2);border-bottom:1px solid var(--rule);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);">
       <div>일시</div>
       <div>매체1</div>
       <div>매체2</div>
       <div>매체3</div>
-      <div>브랜드</div>
-      <div>변경내용</div>
+      <div>캠페인명</div>
+      <div>기획전명</div>
+      <div>변경상세</div>
       <div>상세내용</div>
-      <div>캠페인</div>
-      <div></div>
     </div>
     <div id="history-rows"></div>
   </div>
@@ -1466,6 +1465,16 @@ async function loadHistory() {
   }
 }
 
+function formatDate(dateVal) {
+  if (!dateVal) return '-';
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return String(dateVal);
+  const yy = String(d.getFullYear()).slice(2);
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yy}/${mm}/${dd}`;
+}
+
 function renderHistory() {
   const y = document.getElementById('h-year')?.value || '';
   const m = document.getElementById('h-month')?.value || '';
@@ -1473,28 +1482,29 @@ function renderHistory() {
 
   let data = HISTORY;
   if (y) data = data.filter(x => x.year === y);
-  if (m) data = data.filter(x => x.month === m);
+  if (m) data = data.filter(x => {
+    if (!x.date) return false;
+    const d = new Date(x.date);
+    if (isNaN(d.getTime())) return false;
+    return String(d.getMonth()+1).padStart(2,'0') === m;
+  });
   if (media) data = data.filter(x => [x.media1, x.media2, x.media3].includes(media));
 
   const rows = document.getElementById('history-rows');
   if (!rows) return;
-  if (!data.length) { rows.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3);font-size:13px">히스토리가 없습니다. 항목을 추가해보세요!</div>'; return; }
+  if (!data.length) { rows.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3);font-size:13px">히스토리가 없습니다</div>'; return; }
 
   rows.innerHTML = data.map(item => {
-    const mediaBadge = (m) => m ? `<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${MEDIA_COLORS[m]||'#888'}22;color:${MEDIA_COLORS[m]||'#888'};font-weight:500">${m}</span>` : '<span style="color:var(--ink3);font-size:12px">-</span>';
-    return `<div style="display:grid;grid-template-columns:90px 80px 80px 80px 90px 100px 1fr 1fr 60px;padding:12px 16px;border-top:1px solid var(--rule);align-items:start;transition:background .1s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
-      <div style="font-size:12px;color:var(--ink2)">${item.date||''}</div>
+    const mediaBadge = (m) => m && m !== '-' ? `<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${MEDIA_COLORS[m]||'#888'}22;color:${MEDIA_COLORS[m]||'#888'};font-weight:500">${m}</span>` : '<span style="color:var(--ink3);font-size:12px">-</span>';
+    return `<div style="display:grid;grid-template-columns:80px 70px 70px 70px 100px 120px 1fr 1fr;padding:12px 24px;border-top:1px solid var(--rule);align-items:start;transition:background .1s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+      <div style="font-size:12px;color:var(--ink2);font-family:'DM Mono',monospace">${formatDate(item.date)}</div>
       <div>${mediaBadge(item.media1)}</div>
       <div>${mediaBadge(item.media2)}</div>
       <div>${mediaBadge(item.media3)}</div>
-      <div style="font-size:12px;font-weight:500">${item.brand||'-'}</div>
-      <div style="font-size:11px;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--ink2);display:inline-block">${item.change_type||'-'}</div>
+      <div style="font-size:12px;color:var(--ink)">${item.campaign||'-'}</div>
+      <div style="font-size:12px;color:var(--ink2)">${item.change_type||'-'}</div>
       <div style="font-size:12px;color:var(--ink);line-height:1.5">${item.detail||'-'}</div>
-      <div style="font-size:12px;color:var(--ink2)">${item.campaign||'-'}</div>
-      <div style="display:flex;gap:4px;">
-        <button onclick="openHistoryModal(${item.id})" style="font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--rule);background:#fff;cursor:pointer;color:var(--ink2)">수정</button>
-        <button onclick="deleteHistoryItem(${item.id})" style="font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--rule);background:#fff;cursor:pointer;color:var(--red)">삭제</button>
-      </div>
+      <div style="font-size:12px;color:var(--ink2);line-height:1.5">${item.note||'-'}</div>
     </div>`;
   }).join('');
 }

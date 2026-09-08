@@ -1467,12 +1467,7 @@ async function loadHistory() {
 
 function formatDate(dateVal) {
   if (!dateVal) return '-';
-  const d = new Date(dateVal);
-  if (isNaN(d.getTime())) return String(dateVal);
-  const yy = String(d.getFullYear()).slice(2);
-  const mm = String(d.getMonth()+1).padStart(2,'0');
-  const dd = String(d.getDate()).padStart(2,'0');
-  return `${yy}/${mm}/${dd}`;
+  return String(dateVal);
 }
 
 function renderHistory() {
@@ -1482,12 +1477,7 @@ function renderHistory() {
 
   let data = HISTORY;
   if (y) data = data.filter(x => x.year === y);
-  if (m) data = data.filter(x => {
-    if (!x.date) return false;
-    const d = new Date(x.date);
-    if (isNaN(d.getTime())) return false;
-    return String(d.getMonth()+1).padStart(2,'0') === m;
-  });
+  if (m) data = data.filter(x => x.month === m);
   if (media) data = data.filter(x => [x.media1, x.media2, x.media3].includes(media));
 
   const rows = document.getElementById('history-rows');

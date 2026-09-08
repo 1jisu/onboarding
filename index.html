@@ -1477,7 +1477,12 @@ function renderHistory() {
 
   let data = HISTORY;
   if (y) data = data.filter(x => x.year === y);
-  if (m) data = data.filter(x => x.month === m);
+  if (m) data = data.filter(x => {
+    if (!x.date) return false;
+    const parts = String(x.date).split('/');
+    if (parts.length < 2) return false;
+    return parts[1].padStart(2,'0') === m;
+  });
   if (media) data = data.filter(x => [x.media1, x.media2, x.media3].includes(media));
 
   const rows = document.getElementById('history-rows');

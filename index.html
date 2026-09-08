@@ -668,28 +668,32 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
   </div>
 
   <!-- 필터바 -->
-  <div class="month-bar" style="flex-wrap:wrap;gap:10px;">
-    <label>연도</label>
-    <select id="h-year" onchange="renderHistory()"></select>
-    <label>월</label>
-    <select id="h-month" onchange="renderHistory()">
-      <option value="">전체</option>
-      <option value="01">1월</option><option value="02">2월</option>
-      <option value="03">3월</option><option value="04">4월</option>
-      <option value="05">5월</option><option value="06">6월</option>
-      <option value="07">7월</option><option value="08">8월</option>
-      <option value="09">9월</option><option value="10">10월</option>
-      <option value="11">11월</option><option value="12">12월</option>
-    </select>
-    <label>매체</label>
-    <select id="h-media" onchange="renderHistory()">
-      <option value="">전체</option>
-      <option>메타</option><option>구글</option><option>카카오</option>
-      <option>틱톡</option><option>지피티</option><option>ASA</option>
-      <option>토스</option><option>Pmax</option><option>ACe</option>
-      <option>VVC</option>
-    </select>
-    <button class="month-clear" onclick="clearHistoryFilter()">전체 보기</button>
+  <div style="background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-lg);padding:16px 20px;margin-bottom:16px;display:flex;flex-direction:column;gap:12px;">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase;width:36px;flex-shrink:0">연도</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="h-year-btns"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase;width:36px;flex-shrink:0">월</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="h-month-btns">
+        ${['1','2','3','4','5','6','7','8','9','10','11','12'].map(m=>`
+          <button class="h-filter-btn" data-type="month" data-val="${m.padStart(2,'0')}" onclick="toggleHistoryFilter('month','${m.padStart(2,'0')}',this)"
+            style="font-family:inherit;font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--rule);background:var(--surface);color:var(--ink2);cursor:pointer;">${m}월</button>
+        `).join('')}
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase;width:36px;flex-shrink:0">매체</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="h-media-btns">
+        ${['메타','구글','카카오','틱톡','지피티','ASA','토스','Pmax','ACe','VVC','디멘드젠','쿠키오븐'].map(v=>`
+          <button class="h-filter-btn" data-type="media" data-val="${v}" onclick="toggleHistoryFilter('media','${v}',this)"
+            style="font-family:inherit;font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--rule);background:var(--surface);color:var(--ink2);cursor:pointer;">${v}</button>
+        `).join('')}
+      </div>
+    </div>
+    <div>
+      <button onclick="clearHistoryFilter()" style="font-family:inherit;font-size:12px;padding:4px 14px;border-radius:20px;border:1px solid var(--rule);background:var(--surface2);color:var(--ink2);cursor:pointer;">전체 보기</button>
+    </div>
   </div>
 
   <!-- 테이블 -->
@@ -1465,25 +1469,54 @@ async function loadHistory() {
   }
 }
 
+let H_YEARS = new Set();
+let H_MONTHS = new Set();
+let H_MEDIAS = new Set();
+
+function toggleHistoryFilter(type, val, btn) {
+  const set = type==='year' ? H_YEARS : type==='month' ? H_MONTHS : H_MEDIAS;
+  if (set.has(val)) {
+    set.delete(val);
+    btn.style.background = 'var(--surface)';
+    btn.style.color = 'var(--ink2)';
+    btn.style.fontWeight = '400';
+    btn.style.borderColor = 'var(--rule)';
+  } else {
+    set.add(val);
+    btn.style.background = 'var(--ink)';
+    btn.style.color = '#fff';
+    btn.style.fontWeight = '600';
+    btn.style.borderColor = 'var(--ink)';
+  }
+  renderHistory();
+}
+
+function clearHistoryFilter() {
+  H_YEARS.clear(); H_MONTHS.clear(); H_MEDIAS.clear();
+  document.querySelectorAll('.h-filter-btn').forEach(b => {
+    b.style.background = 'var(--surface)';
+    b.style.color = 'var(--ink2)';
+    b.style.fontWeight = '400';
+    b.style.borderColor = 'var(--rule)';
+  });
+  renderHistory();
+}
+
 function formatDate(dateVal) {
   if (!dateVal) return '-';
   return String(dateVal);
 }
 
 function renderHistory() {
-  const y = document.getElementById('h-year')?.value || '';
-  const m = document.getElementById('h-month')?.value || '';
-  const media = document.getElementById('h-media')?.value || '';
-
   let data = HISTORY;
-  if (y) data = data.filter(x => x.year === y);
-  if (m) data = data.filter(x => {
+  if (H_YEARS.size) data = data.filter(x => H_YEARS.has(String(x.year)));
+  if (H_MONTHS.size) data = data.filter(x => {
     if (!x.date) return false;
     const match = String(x.date).trim().match(/^(\d+)\//);
     if (!match) return false;
-    return match[1].padStart(2,'0') === m;
+    return H_MONTHS.has(match[1].padStart(2,'0'));
   });
-  if (media) data = data.filter(x => [x.media1, x.media2, x.media3].includes(media));
+  if (H_MEDIAS.size) data = data.filter(x => H_MEDIAS.has(x.media1) || H_MEDIAS.has(x.media2) || H_MEDIAS.has(x.media3));
 
   const rows = document.getElementById('history-rows');
   if (!rows) return;
@@ -1504,11 +1537,7 @@ function renderHistory() {
   }).join('');
 }
 
-function clearHistoryFilter() {
-  document.getElementById('h-month').value = '';
-  document.getElementById('h-media').value = '';
-  renderHistory();
-}
+function clearHistoryFilter_old() {}
 
 function openHistoryModal(id) {
   editingHistoryId = id;
@@ -1590,6 +1619,20 @@ async function init() {
   });
   await loadItems();
   await loadHistory();
+  // 연도 버튼 생성
+  const yBtns = document.getElementById('h-year-btns');
+  if (yBtns) {
+    getYears().forEach(y => {
+      const btn = document.createElement('button');
+      btn.className = 'h-filter-btn';
+      btn.dataset.type = 'year';
+      btn.dataset.val = String(y);
+      btn.textContent = y + '년';
+      btn.style.cssText = 'font-family:inherit;font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--rule);background:var(--surface);color:var(--ink2);cursor:pointer;';
+      btn.onclick = () => toggleHistoryFilter('year', String(y), btn);
+      yBtns.appendChild(btn);
+    });
+  }
   renderMonthly();
   renderReflect();
   renderLinks();

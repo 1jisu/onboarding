@@ -866,8 +866,7 @@ async function deleteMonthFromDb(ym) {
 
 // ════ YEAR SELECTS ════
 function getYears() {
-  const cur = new Date().getFullYear();
-  return [cur-1, cur, cur+1];
+  return [2024, 2025, 2026];
 }
 function populateYearSelects() {
   const years = getYears();

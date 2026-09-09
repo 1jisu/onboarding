@@ -1471,7 +1471,7 @@ const MEDIA_COLORS = {
 
 async function loadHistory() {
   try {
-    const data = await sbFetch('work_history?order=id.desc');
+    const data = await sbFetch('work_history?order=id.asc');
     HISTORY = data;
   } catch(e) {
     console.error('히스토리 로드 실패:', e);

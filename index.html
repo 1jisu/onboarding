@@ -684,6 +684,12 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
     <div>
       <button onclick="clearHistoryFilter()" style="font-family:inherit;font-size:12px;padding:4px 14px;border-radius:20px;border:1px solid var(--rule);background:var(--surface2);color:var(--ink2);cursor:pointer;">전체 보기</button>
     </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase;width:36px;flex-shrink:0">검색</span>
+      <input id="h-search" type="text" placeholder="캠페인명, 상세내용 등 검색..." oninput="renderHistory()"
+        style="font-family:inherit;font-size:13px;padding:7px 14px;border:1px solid var(--rule);border-radius:8px;outline:none;width:320px;transition:border-color .15s;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--rule)'" />
+    </div>
   </div>
 
   <!-- 테이블 -->
@@ -1503,6 +1509,8 @@ function toggleHistoryFilter(type, val, btn) {
 
 function clearHistoryFilter() {
   H_YEARS.clear(); H_MONTHS.clear(); H_MEDIAS.clear();
+  const s = document.getElementById('h-search');
+  if (s) s.value = '';
   document.querySelectorAll('.h-filter-btn').forEach(b => {
     b.style.background = 'var(--surface)';
     b.style.color = 'var(--ink2)';
@@ -1528,21 +1536,39 @@ function renderHistory() {
   });
   if (H_MEDIAS.size) data = data.filter(x => H_MEDIAS.has(x.media1) || H_MEDIAS.has(x.media2) || H_MEDIAS.has(x.media3));
 
+  const q = document.getElementById('h-search')?.value?.trim().toLowerCase() || '';
+  if (q) data = data.filter(x =>
+    (x.campaign||'').toLowerCase().includes(q) ||
+    (x.brand||'').toLowerCase().includes(q) ||
+    (x.change_type||'').toLowerCase().includes(q) ||
+    (x.detail||'').toLowerCase().includes(q) ||
+    (x.note||'').toLowerCase().includes(q) ||
+    (x.date||'').toLowerCase().includes(q) ||
+    (x.media1||'').toLowerCase().includes(q) ||
+    (x.media2||'').toLowerCase().includes(q) ||
+    (x.media3||'').toLowerCase().includes(q)
+  );
+
   const rows = document.getElementById('history-rows');
   if (!rows) return;
   if (!data.length) { rows.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink3);font-size:13px">히스토리가 없습니다</div>'; return; }
 
+  function hl(str) {
+    if (!q || !str) return str || '-';
+    return String(str).replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark style="background:#fff0b0;border-radius:2px;padding:0 1px">$1</mark>');
+  }
+
   rows.innerHTML = data.map(item => {
     const mediaBadge = (m) => m && m !== '-' ? `<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${MEDIA_COLORS[m]||'#888'}22;color:${MEDIA_COLORS[m]||'#888'};font-weight:500">${m}</span>` : '<span style="color:var(--ink3);font-size:12px">-</span>';
     return `<div style="display:grid;grid-template-columns:80px 70px 70px 70px 160px 160px 100px 1fr;padding:12px 24px;border-top:1px solid var(--rule);align-items:start;transition:background .1s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
-      <div style="font-size:12px;color:var(--ink2);font-family:'DM Mono',monospace">${formatDate(item.date)}</div>
+      <div style="font-size:12px;color:var(--ink2);font-family:'DM Mono',monospace">${hl(item.date)}</div>
       <div>${mediaBadge(item.media1)}</div>
       <div>${mediaBadge(item.media2)}</div>
       <div>${mediaBadge(item.media3)}</div>
-      <div style="font-size:12px;color:var(--ink)">${item.campaign||'-'}</div>
-      <div style="font-size:12px;color:var(--ink2)">${item.change_type||'-'}</div>
-      <div style="font-size:12px;color:var(--ink);line-height:1.5">${item.detail||'-'}</div>
-      <div style="font-size:12px;color:var(--ink2);line-height:1.5">${item.note||'-'}</div>
+      <div style="font-size:12px;color:var(--ink)">${hl(item.campaign)}</div>
+      <div style="font-size:12px;color:var(--ink2)">${hl(item.change_type)}</div>
+      <div style="font-size:12px;color:var(--ink);line-height:1.5">${hl(item.detail)}</div>
+      <div style="font-size:12px;color:var(--ink2);line-height:1.5">${hl(item.note)}</div>
     </div>`;
   }).join('');
 }

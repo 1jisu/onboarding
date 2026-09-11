@@ -592,6 +592,25 @@ mark { background: #fff0b0; border-radius: 2px; padding: 0 1px; }
     </select>
     <button class="month-clear" onclick="clearMonthFilter('m')">전체 보기</button>
   </div>
+
+  <!-- 일괄 날짜 변경 바 -->
+  <div style="margin-bottom:12px;">
+    <button id="bulk-mode-btn" onclick="toggleBulkMode()" style="font-family:inherit;font-size:12px;font-weight:500;padding:6px 16px;border-radius:20px;border:1px solid var(--rule);background:var(--surface);color:var(--ink2);cursor:pointer;">📅 날짜 변경</button>
+  </div>
+  <div id="bulk-bar" style="display:none;background:var(--accent-light);border:1px solid #c5d5f8;border-radius:var(--r);padding:10px 16px;margin-bottom:12px;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span style="font-size:13px;color:var(--ink2)">항목을 선택하세요</span>
+    <span style="font-size:13px;font-weight:500;color:var(--accent)" id="bulk-count"></span>
+    <select id="bulk-year" class="form-select" style="width:auto;font-size:12px;padding:4px 8px;"></select>
+    <select id="bulk-month" class="form-select" style="width:auto;font-size:12px;padding:4px 8px;">
+      <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
+      <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
+      <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
+      <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+    </select>
+    <button onclick="applyBulkDate()" style="font-family:inherit;font-size:12px;font-weight:600;padding:5px 16px;border-radius:8px;background:var(--accent);color:#fff;border:none;cursor:pointer;">변경 확정</button>
+    <button onclick="toggleBulkMode()" style="font-family:inherit;font-size:12px;padding:5px 12px;border-radius:8px;background:#fff;color:var(--ink2);border:1px solid var(--rule);cursor:pointer;">취소</button>
+  </div>
+
   <div id="monthly-content"></div>
 </section>
 
@@ -994,6 +1013,60 @@ async function confirmSave() {
   }
 }
 
+let bulkModeOn = false;
+
+function toggleBulkMode() {
+  bulkModeOn = !bulkModeOn;
+  const bar = document.getElementById('bulk-bar');
+  const btn = document.getElementById('bulk-mode-btn');
+  bar.style.display = bulkModeOn ? 'flex' : 'none';
+  btn.style.display = bulkModeOn ? 'none' : 'inline-block';
+  document.querySelectorAll('.monthly-check').forEach(c => {
+    c.style.display = bulkModeOn ? 'inline-block' : 'none';
+    c.checked = false;
+  });
+  document.getElementById('bulk-count').textContent = '';
+}
+
+function updateBulkBar() {
+  const checked = document.querySelectorAll('.monthly-check:checked');
+  const count = checked.length;
+  document.getElementById('bulk-count').textContent = count > 0 ? `${count}개 선택됨 →` : '항목을 선택하세요';
+}
+
+function clearBulkSelect() {
+  document.querySelectorAll('.monthly-check').forEach(c => c.checked = false);
+  document.getElementById('bulk-count').textContent = '항목을 선택하세요';
+}
+
+async function applyBulkDate() {
+  const checked = document.querySelectorAll('.monthly-check:checked');
+  if (!checked.length) return;
+  const y = document.getElementById('bulk-year').value;
+  const m = document.getElementById('bulk-month').value;
+  const newYm = `${y}-${m}`;
+  if (!confirm(`선택된 ${checked.length}개 항목을 ${y}년 ${parseInt(m)}월로 변경할까요?`)) return;
+  try {
+    for (const cb of checked) {
+      const id = parseInt(cb.dataset.id);
+      await sbFetch(`review_items?id=eq.${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ ym: newYm }),
+        prefer: 'return=minimal'
+      });
+      const item = ITEMS.find(x => x.id === id);
+      if (item) item.ym = newYm;
+    }
+    showToast(`${checked.length}개 항목 날짜 변경 완료 ✓`);
+    bulkModeOn = true;
+    toggleBulkMode();
+    renderMonthly();
+    renderReflect();
+  } catch(e) {
+    showToast('변경 실패: ' + e.message);
+  }
+}
+
 // ════ MONTHLY ════
 function getMonthlyFilter() {
   const y = document.getElementById('m-year').value;
@@ -1025,6 +1098,9 @@ function renderMonthly() {
         : '';
       return `
       <div class="monthly-item" id="mitem-${item.id}">
+        <input type="checkbox" class="monthly-check" data-id="${item.id}"
+          style="width:15px;height:15px;cursor:pointer;flex-shrink:0;accent-color:var(--accent);display:none"
+          onchange="updateBulkBar()" />
         <div class="monthly-item-dot"></div>
         <div class="monthly-item-body" id="body-${item.id}">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -1645,6 +1721,9 @@ async function deleteHistoryItem(id) {
 // ════ INIT ════
 async function init() {
   populateYearSelects();
+  // bulk-year select
+  const by = document.getElementById('bulk-year');
+  if (by) getYears().forEach(y => { const o = document.createElement('option'); o.value=y; o.textContent=y+'년'; if(String(y)===String(new Date().getFullYear())) o.selected=true; by.appendChild(o); });
   // link year select
   const ly = document.getElementById('link-year');
   if (ly) getYears().forEach(y => { const o = document.createElement('option'); o.value=y; o.textContent=y+'년'; ly.appendChild(o); });
